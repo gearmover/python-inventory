@@ -1,0 +1,12 @@
+<table>
+<tr class="headers">
+    <td ng-repeat="header in headers">
+        {{ header }}
+    </td>
+</tr>
+<tr ng-repeat="item in items">
+   <td ng-repeat="header in $parent.headers">
+       {{ item[header] }}
+   </td>
+</tr>
+</table>
