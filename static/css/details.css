@@ -1,0 +1,65 @@
+.details pre {
+    display: inline;
+    background-color: white;
+    border: none;
+    font-family: 'Open Sans';
+    height: 16px;
+    padding:2px;
+}
+
+.d-model, .d-model pre {
+    font-weight:bold;
+    font-size:24pt;
+    padding-bottom: 30px;
+    min-width:150px;
+    width: 450px;
+    max-width: 450px;
+}
+
+.d-manufacturer, .d-manufacturer pre {
+    font-style: italic;
+    font-size: 16pt;
+    margin-left: 20px;
+        min-width:150px;
+    width: 450px;
+    max-width: 450px;
+}
+
+.d-image {
+    position: absolute;
+    right: 2%;
+    top: 10px;
+}
+
+.d-description {
+    width: 650px;
+}
+.d-description pre {
+    font-size: 12pt;
+    min-width:150px;
+    width: 650px;
+    max-width: 650px;
+}
+
+.d-sourcegrant {
+    width: 450px;
+}
+.d-sourcegrant pre {
+    font-size: 12pt;
+    min-width:150px;
+    width: 650px;
+    max-width: 650px;
+}
+
+.d-room, .d-location, .d-ocodecal, .d-calibrationdoc, .d-calibrationexpires, .serial {
+    font-size: 12pt;
+    min-width:150px;
+    width: 450px;
+    max-width: 450px;
+}
+.d-room pre, .d-location pre, .d-ocodecal pre, .d-calibrationdoc pre, .d-calibrationexpires pre, .serial pre {
+    font-size: 12pt;
+    min-width:150px;
+    width: 350px;
+    max-width: 350px;
+}
