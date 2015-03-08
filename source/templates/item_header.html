@@ -1,0 +1,42 @@
+<div class="info-block">
+
+    <form id="form-{{ fields['id'] }}" action="javascript:updateItem('{{ fields['id'] }}')">
+
+        <span class="d-model"><pre class='model' contenteditable="true">{{ fields['Model'] }}</pre></span>
+        <span class="d-manufacturer"><pre class='manufacturer' contenteditable="true">{{ fields['Manufacturer'] }}</pre></span>
+        <img src="{{ fields['ImageUrl'] }}" class="d-image"><br><br>
+
+        <div class="d-description"><strong style="margin-left:10px">Description:</strong> &nbsp;&nbsp;
+            <pre class="description" contenteditable="true">{{ fields['Description'] }}</pre>
+        </div>
+        <div class="d-sourcegrant"><strong style="margin-left:10px">Source Grant:</strong> &nbsp;&nbsp;
+            <pre class="sourcegrant" contenteditable="true">{{ fields['Source Grant'] }}</pre>
+        </div>
+        <span class="d-location"><strong style="margin-left:10px">Location:</strong> &nbsp;&nbsp;<pre class="location"
+                contenteditable="true">{{ fields['Location'] }}</pre></span>
+        <span class="d-room"><strong style="margin-left:10px">&nbsp;&nbsp;Room:</strong> &nbsp;&nbsp;<pre class="room"
+                contenteditable="true">{{ fields['Room'] }}</pre></span>
+        <br><br>
+
+        <div class="d-ocodecal"><strong style="margin-left:10px">OCO Decal Number:</strong> &nbsp;&nbsp;
+            <pre class="ocodecal" contenteditable="true">{{ fields['OCO Decal No'] }}</pre>
+        </div>
+        <span class="d-calibrationdoc"><strong style="margin-left:10px">Calibration Documentation:</strong> &nbsp;&nbsp;<pre class="calibrationdoc"
+                contenteditable="true"><a
+                href="{{ fields['Calibration Doc'] }}">{{ fields['Calibration Doc'] }}</a></pre></span>
+        <span class="d-calibrationexpires"><strong style="margin-left:10px">&nbsp;&nbsp;Expires:</strong> &nbsp;&nbsp;<pre class="calibrationexpires"
+                contenteditable="true">{{ fields['Calibration Expires'] }}</pre></span>
+
+        <div class="d-serial"><strong style="margin-left:10px">Serial Number:</strong> &nbsp;&nbsp;
+            <pre contenteditable="true" class="serial">{{ fields['Serial Number'] }}</pre>
+        </div>
+
+        <img src="{{ fields['QRUrl'] }}" class="d-qr"><br><br>
+        <img src="{{ fields['UPCUrl'] }}" class="d-upc"><br><br>
+
+        <input type="hidden" id="_id" value="{{ fields['id'] }}">
+
+        <input type="submit" value="Update" class="update-button">
+
+    </form>
+</div>
