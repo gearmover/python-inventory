@@ -3,16 +3,21 @@ import time
 import hashlib
 import json
 
+import flask.ext.login as flogin
 import vendor.qrtools as qrtools
 from elaphe.upc import UpcA
 import flask
 import rethinkdb as r
 
+from userauth import init, attempt
+
 
 app = flask.Flask(__name__)
-app.secret_key = 'EFAWEFBEEWOINAEWBNAWEF:OIEBNAWDA'
+app.secret_key = 'G0AI5jihTfHV9s1ALDqUO6BRCIKn4Nt5'
 
 conn = r.connect('127.0.0.1', 28015)
+
+auth_mgr = init(app, '127.0.0.1', 28015)
 
 
 def setup_db():
@@ -41,128 +46,6 @@ cache_expires = 0
 cache_time = 60  # 60 second cache time
 
 
-class UserMgr:
-    _conn = None
-
-    def __init__(self, dconn):
-
-        self._conn = dconn
-
-        self._db = r.db('inventory').table('users')
-        self._cache = self._db.run(dconn)
-        self._cacheExpires = time.time() + 60
-
-    def check_cache(self, force=False):
-
-        if time.time() < self._cacheExpires and not force:
-            return
-
-        try:
-            self._cache = list(self._db.run(self._conn))
-            self._cacheExpires = time.time() + 60
-
-        except r.RqlError as e:
-            print "[ERROR] User Database Error: %s" % e.message
-
-            raise e
-
-    def register_user(self, user):
-
-        self.check_cache()
-
-        try:
-            dup = [i for i in self._cache if i.username == user.username]
-
-            if len(dup) > 0:
-                print "[WARNING]: Attempted to register duplicate user"
-
-                return dup
-
-            safe = {'roles': user.roles,
-                    'username': user.username,
-                    'password': user.password,
-                    'lastSeen': time.time(),
-                    'itemList': user.itemList,
-                    'locked': user.locked}
-
-            result = self._db.insert(safe).run(self._conn)
-
-            print "[INFO]: Registered new user %s.  DB Result: %s" % (safe['username'], json.dumps(result))
-
-        except:
-
-            return None
-
-        return result
-
-    def check_user(self, username, password):
-
-        hashed = hashlib.sha256(password)
-
-        self.check_cache()
-
-        matched = [user for user in self._cache if user.username == username and user.password == hashed]
-
-        if len(matched) > 0:
-            return matched[0]
-
-        return None
-
-
-class User:
-    def __init__(self):
-        self.roles = ['']
-        self.username = ''
-        self.password = '!'
-        self.lastSeen = 'NEVER'
-        self.itemList = [{}]
-        self.locked = False
-
-    def to_string(self):
-
-        serial = json.dumps({'roles': self.roles,
-                             'username': self.username,
-                             'password': self.password,
-                             'lastSeen': time.time(),
-                             'itemList': self.itemList,
-                             'locked': self.locked})
-
-        return serial
-
-    def from_string(self, string):
-
-        checker = lambda i, attr: i['roles'] if attr in i else None
-
-        try:
-            item = json.loads(string)
-
-            self.roles = checker(item, 'roles')
-            self.username = checker(item, 'username')
-            self.password = checker(item, 'password')
-            self.lastSeen = checker(item, 'lastSeen')
-            self.itemList = checker(item, 'itemList')
-            self.locked = checker(item, 'locked')
-
-        except:
-
-            self.__init__()
-
-
-# attempts to log a user in
-#
-def user_login(username, password):
-    global users_db
-
-    item = users_db.find_one(r.row('username', username)).run()
-
-    if item:
-        hashed_pw = hashlib.sha256('MONTESSORI' + password)
-        if item.password == hashed_pw:
-            return item
-
-    return None
-
-
 def update_cache(offset=0, limit=999):
     global cache
     global cache_expires
@@ -188,12 +71,12 @@ def update_cache(offset=0, limit=999):
                     item['Status'] = 'In'
                 if 'QRUrl' not in item:
                     try:
-                        f = open(os.path.dirname(__file__) + '/static/images/' + item['id'] + '.png')
+                        f = open('static/images/' + item['id'] + '.png')
                         f.close()
                     except IOError:
                         qr = qrtools.QR(item['id'])
 
-                        qr.encode(os.path.dirname(__file__) + '/static/images/' + item['id'] + '.png')
+                        qr.encode('static/images/' + item['id'] + '.png')
 
                     item['QRUrl'] = '/static/images/' + item['id'] + '.png'
 
@@ -205,13 +88,11 @@ def update_cache(offset=0, limit=999):
 
                         upc = (str(upc))[-11:]
 
-                        print 'upc: %s\n' % upc
-
-                        f = open(os.path.dirname(__file__) + '/static/images/' + upc + '.png')
+                        f = open('static/images/' + upc + '.png')
                         f.close()
                     except IOError:
                         qr = UpcA().render(upc, options=dict(includetext=True), scale=2, margine=1)
-                        qr.save(os.path.dirname(__file__) + '/static/images/' + upc + '.png')
+                        qr.save('static/images/' + upc + '.png')
 
                     item['UPCUrl'] = '/static/images/' + upc + '.png'
 
@@ -232,6 +113,7 @@ def update_cache(offset=0, limit=999):
 
 
 @app.route('/assets/<t>/<filename>')
+@flogin.login_required
 def assets(filename, t):
     try:
         if '..' in filename or filename[0] == '/':
@@ -261,6 +143,7 @@ def not_found():
 
 
 @app.route('/items/count', methods=['GET'])
+@flogin.login_required
 def item_count():
     view = update_cache()
 
@@ -268,11 +151,13 @@ def item_count():
 
 
 @app.route('/items')
+@flogin.login_required
 def def_list_items():
     return flask.redirect('/items/0/99')
 
 
 @app.route('/items/<offset>/<limit>', methods=['GET'])
+@flogin.login_required
 def list_items(offset, limit):
     offset = offset or 0
     limit = limit or 100
@@ -304,6 +189,7 @@ def list_items(offset, limit):
 
 @app.route('/json/items/<offset>/<limit>', methods=['GET'])
 @app.route('/json/items')
+@flogin.login_required
 def list_items_json(offset=0, limit=99):
     offset = offset or 0
     limit = limit or 100
@@ -339,46 +225,82 @@ def list_items_json(offset=0, limit=99):
                        'headers': summary_headers})
 
 
+@app.route('/login', methods=['GET'])
+def show_login():
+
+    return flask.render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    form = flask.request.form
+
+    print '[routes::login] -> parameters are : ',dict(form)
+
+    args = {}
+    attr = (lambda obj,attr: obj[attr] if attr in obj else None)
+
+    args['username'] = unicode(attr(form,'username'))
+    args['password'] = attr(form,'password')
+    args['rememberme'] = attr(form,'rememberme') == 'true'
+
+    user = attempt(args['username'], args['password'])
+
+    print '[routes::login] -> login attempt : ', str(user)
+
+    if user is not None:
+        print 'id: %d, name: %s, active: %d' % (user.id, user.name, user.active)
+        flogin.login_user(user)
+        return flask.redirect(flask.request.args.get("next") or '/items')
+
+    return flask.render_template('login.html', form=form)
+
+    # user is not None:
+        #flogin.login_user(user, form['rememberme'])
+
+
+
 @app.route('/items', methods=['PUT'])
+@flogin.login_required
 def update_item():
-    try:
-        current_user = user_login(flask.request.form['username'], flask.request.form['password'])
-    except KeyError:
-        # no user data submitted
-        flask.flash('Invalid Request')
-        return 403
+    # try:
+    #     pass
+    # except KeyError:
+    #     # no user data submitted
+    #     flask.flash('Invalid Request')
+    #     return 403
+    #
+    # if flogin.current_user is None:
+    #     # invalid credentials
+    #     flask.flash('Invalid Credentials')
+    #     return 401
+    #
+    # if 'DB_ADMIN' in flogin.current_user.roles:
+    #     flask.flash('Yay success')
+    #     return 'Success'
 
-    if current_user is None:
-        # invalid credentials
-        flask.flash('Invalid Credentials')
-        return 401
-
-    if 'DB_ADMIN' in current_user.roles:
-        flask.flash('Yay success')
-        return 'Success'
-
-    return 401
+    return flask.abort(401)
 
 
 @app.route('/items', methods=['DELETE'])
+@flogin.login_required
 def delete_item():
-    try:
-        current_user = user_login(flask.request.form['username'], flask.request.form['password'])
-    except KeyError:
-        # no user data submitted
-        flask.flash('Invalid Request')
-        return 403
+    # try:
+    #     current_user = userauth.att(flask.request.form['username'], flask.request.form['password'])
+    # except KeyError:
+    #     # no user data submitted
+    #     flask.flash('Invalid Request')
+    #     return 403
+    #
+    # if current_user is None:
+    #     # invalid credentials
+    #     flask.flash('Invalid Credentials')
+    #     return 401
+    #
+    # if 'DB_ADMIN' in current_user.roles:
+    #     flask.flash('Yay success')
+    #     return 'Success'
 
-    if current_user is None:
-        # invalid credentials
-        flask.flash('Invalid Credentials')
-        return 401
-
-    if 'DB_ADMIN' in current_user.roles:
-        flask.flash('Yay success')
-        return 'Success'
-
-    return 401
+    return flask.abort(401)
 
 
 @app.route('/items/<barcode>', methods=['POST'])

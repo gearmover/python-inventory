@@ -174,14 +174,12 @@ class RDatabaseMgr(DatabaseMgr):
         print result
 
 
-csv_files = [('/home/chris/src/python-inventory/data.csv', 'data'),
-             ('/home/chris/src/python-inventory/vision.csv', 'vision'),
-             ('/home/chris/src/python-inventory/control.csv', 'control'),
-             ('/home/chris/src/python-inventory/sensing.csv', 'sensing')]
+csv_files = [('/home/chris/src/python-inventory/db/data.csv', 'data'),
+             ('/home/chris/src/python-inventory/db/vision.csv', 'vision'),
+             ('/home/chris/src/python-inventory/db/control.csv', 'control'),
+             ('/home/chris/src/python-inventory/db/sensing.csv', 'sensing')]
 
 if __name__ == "__main__":
-
-    global ready, csv_files
 
     mgr = RDatabaseMgr()
 

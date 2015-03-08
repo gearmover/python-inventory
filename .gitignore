@@ -1,5 +1,5 @@
-.git/
-.idea/
-rethinkdb-*/
-source/static/images/
+.git
+.idea
+rethinkdb-*
+source/static/images
 *.csv
