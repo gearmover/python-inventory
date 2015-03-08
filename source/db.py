@@ -6,42 +6,83 @@ this is the only file that should need major revision.
 __author__ = 'Chris Pergrossi'
 
 import rethinkdb as r
-import pymongo
-import uuid
+import pymongo as mongo
+import time
+import csv
 import json
+import hashlib
+import os
 
+conn = r.connect('localhost', 28015)
 
+try:
+    r.db('inventory').run(conn)
+except:
+    try:
+        r.db_create('inventory').run(conn)
+    except:
+        pass
+
+time.sleep(1)
+
+try:
+    r.db('inventory').table('items').run(conn)
+except:
+    try:
+        r.db('inventory').table_create('items').run(conn)
+    except:
+        pass
 
 class DatabaseMgr:
-    """ Handles the database start up, shut down and initial addition of items.
-    """
 
     _schema = {
         'version': '0.0.1',
         'fields': {
-            'essieqr': {'displayName': 'ESSIE QR Code', 'summary': True, 'style': 'width:50px;height:50px;', 'hide': False, 'description': 'The ESSIE QR image and the plaintext data encoded in it'},           #
-            'uf_inventory': {'displayName': 'UF Inventory Number', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'University of Florida assigned inventory ID'},            #
-            'type': {'displayName':'Type', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'One of four broad categories of ESSIE inventory'},
-            'manufacturer': {'displayName':'Manufacturer', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'The items parent company, or a representative brand'},
-            'model': {'displayName': 'Model', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'The product line or version'},                                 #
-            'description': {'displayName': 'description', 'summary': False, 'style': 'width:10%', 'hide': False, 'description': 'A short description of the item from the vendors marketing material'},                      # Approx a paragraph describing the item
-            'serial': {'displayName': 'Serial Number', 'summary': False, 'style': 'width:10%', 'hide': False, 'description': 'Any unique serial the item might have from the manufacturer'},                         #
-            'location': {'displayName': 'Location', 'summary': False, 'style': 'width:10%', 'hide': False, 'description': 'The main storage facility of this item.'},
-            'gps': {'displayName': 'Last GPS', 'summary': True, 'style': 'width:10%;', 'hide': False, 'description': 'The GPS coordinates of the previous location this item was scanned'},
-            'lastcheck': {'displayName': 'Last Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'The most recent instrument calibration, if applicable'},
-            'nextcheck': {'displayName': 'Next Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'The next scheduled instrument calibration, if applicable'},
-            'rangeUnits': {'displayName': 'Units of Range', 'summary': True, 'style': 'width:10%;', 'hide': True, 'description': 'The units measured throughout the items range'},
-            'rangeMin': {'displayName': 'Range Min', 'summary': True, 'style': 'width:10%;', 'hide': False, 'description': 'The minimum value expected to not cause permanent damage'},
-            'rangeMax': {'displayName': 'Range Max', 'summary': True, 'style': 'width:10%;', 'hide': False, 'description': 'The maximum value expected to not cause permanent damage'},
-            'measureUnits': {'displayName': 'Units of Measurement', 'summary': True, 'style': 'width:10%;', 'hide': True, 'description': 'The units used by the instrument for measurements'},
-            'measureMin': {'displayName': 'Min Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False, 'description': 'The minimum value expected to provide repeatable, reliable results'},
-            'measureMax': {'displayName': 'Max Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False, 'description': 'The maximum value expected to provide repeatable, reliable results'},
-            'room': {'displayName':'Room', 'summary': False, 'style': 'width:10%', 'hide': False, 'description': 'The room number where this item is typically stored'},
-            'manual': {'displayName':'Manual', 'summary': False, 'style': 'width:10%', 'hide': False, 'description': 'A link to a local digital copy of the product manual, if available'},
-            'ocodecal': {'displayName':'OCO Decal No.', 'summary': False, 'style': 'width:10%;', 'hide': False, 'description': 'Another external tracking decal (?)'},
-            'sourcegrant': {'displayName': 'Source Grant', 'summary': False, 'style': 'width:10%', 'hide': False, 'description': 'The grant funding the purchase and maintenance of this item'}
+            'essieqr': {'displayName': 'ESSIE QR Code', 'summary': True, 'style': 'width:50px;height:50px;',
+                        'hide': False, 'description': 'The ESSIE QR image and the plaintext data encoded in it'},  #
+            'uf_inventory': {'displayName': 'UF Inventory Number', 'summary': False, 'style': 'width:10%;',
+                             'hide': False, 'description': 'University of Florida assigned inventory ID'},  #
+            'type': {'displayName': 'Type', 'summary': False, 'style': 'width:10%;', 'hide': False,
+                     'description': 'One of four broad categories of ESSIE inventory'},
+            'manufacturer': {'displayName': 'Manufacturer', 'summary': False, 'style': 'width:10%;', 'hide': False,
+                             'description': 'The items parent company, or a representative brand'},
+            'model': {'displayName': 'Model', 'summary': False, 'style': 'width:10%;', 'hide': False,
+                      'description': 'The product line or version'},  #
+            'description': {'displayName': 'description', 'summary': False, 'style': 'width:10%', 'hide': False,
+                            'description': 'A short description of the item from the vendors marketing material'},
+            # Approx a paragraph describing the item
+            'serial': {'displayName': 'Serial Number', 'summary': False, 'style': 'width:10%', 'hide': False,
+                       'description': 'Any unique serial the item might have from the manufacturer'},  #
+            'location': {'displayName': 'Location', 'summary': False, 'style': 'width:10%', 'hide': False,
+                         'description': 'The main storage facility of this item.'},
+            'gps': {'displayName': 'Last GPS', 'summary': True, 'style': 'width:10%;', 'hide': False,
+                    'description': 'The GPS coordinates of the previous location this item was scanned'},
+            'lastcheck': {'displayName': 'Last Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False,
+                          'description': 'The most recent instrument calibration, if applicable'},
+            'nextcheck': {'displayName': 'Next Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False,
+                          'description': 'The next scheduled instrument calibration, if applicable'},
+            'rangeUnits': {'displayName': 'Units of Range', 'summary': True, 'style': 'width:10%;', 'hide': True,
+                           'description': 'The units measured throughout the items range'},
+            'rangeMin': {'displayName': 'Range Min', 'summary': True, 'style': 'width:10%;', 'hide': False,
+                         'description': 'The minimum value expected to not cause permanent damage'},
+            'rangeMax': {'displayName': 'Range Max', 'summary': True, 'style': 'width:10%;', 'hide': False,
+                         'description': 'The maximum value expected to not cause permanent damage'},
+            'measureUnits': {'displayName': 'Units of Measurement', 'summary': True, 'style': 'width:10%;',
+                             'hide': True, 'description': 'The units used by the instrument for measurements'},
+            'measureMin': {'displayName': 'Min Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False,
+                           'description': 'The minimum value expected to provide repeatable, reliable results'},
+            'measureMax': {'displayName': 'Max Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False,
+                           'description': 'The maximum value expected to provide repeatable, reliable results'},
+            'room': {'displayName': 'Room', 'summary': False, 'style': 'width:10%', 'hide': False,
+                     'description': 'The room number where this item is typically stored'},
+            'manual': {'displayName': 'Manual', 'summary': False, 'style': 'width:10%', 'hide': False,
+                       'description': 'A link to a local digital copy of the product manual, if available'},
+            'ocodecal': {'displayName': 'OCO Decal No.', 'summary': False, 'style': 'width:10%;', 'hide': False,
+                         'description': 'Another external tracking decal (?)'},
+            'sourcegrant': {'displayName': 'Source Grant', 'summary': False, 'style': 'width:10%', 'hide': False,
+                            'description': 'The grant funding the purchase and maintenance of this item'}
+            }
         }
-    }
 
     _DefaultConfig = {
         'rethinkDB': {
@@ -49,20 +90,7 @@ class DatabaseMgr:
             'host': 'localhost',
             'port': 28015,
             'database': 'inventory',
-            'tables': ['control','sensing','data','vision'],
-            'username': '',
-            'password': '',
-            'authkey': '',
-            'fatalIfNotFound': True,
-            'authenticated': False,
-            'adminParty': True
-        },
-        'mongoDB': {
-            'dbType': 'mongodb',
-            'host': 'localhost',
-            'port': 27017,
-            'database': 'inventory',
-            'tables': ['control','sensing','data','vision'],
+            'tables': ['control', 'sensing', 'data', 'vision'],
             'username': '',
             'password': '',
             'authkey': '',
@@ -73,108 +101,94 @@ class DatabaseMgr:
     }
 
     def __init__(self):
-        self._config = self._DefaultConfig['rethinkDB']
+        pass
 
-    def setActiveDB(self,which):
-        which = which.lower()
+    def connect(self, host=None, port=None):
+        print "[warning]: function call to pure virtual DatabaseMgr::connect method"
 
-        if 'rethinkdb' in which:
-            self._config = self._DefaultConfig['rethinkDB']
+    def dump_table(self, output='database.dump'):
+        print "[warning]: function call to pure virtual DatabaseMgr::dump_table method"
 
-        elif 'mongodb' in which:
+    def load_csv(self, filename, category=None):
 
-            raise NotImplementedError("MongoDB is not supported yet.")
+        data = list(csv.DictReader(open(filename, 'rb')))
 
-    def connect(self,host = None,port = None):
+        if len(data) == 0:
+            print "[warning]: CSV file %s empty or not found. no data loaded." % os.path.basename(filename)
 
-        try:
-            if 'rethinkdb' in self._config['dbType']:
-                return r.connect(host or self._config['host'], port or self._config['port'])
-        except:
-            return None
-
-        raise RuntimeError("[%s:%s]: Attempting to connect with invalid DB configuration." % (__file__,__name__))
-
-    def prepCSV(self, filename, category = None):
-
-        print "Converting '%s' to JSON for use with rethinkdb import" % filename
-
-        try:
-            f = open(filename, "rt")
-
-            filename += 'new'
-
-            data = f.readlines()
-
-            print "Read %d records." % (len(data)-1)
-
-            f.close()
-        except IOError as e:
-            print("[%s:%s]: IOError - %s" % (__file__, __name__, e.message))
-            raise e
-
-
-        needsConverting = data[0].split(',')
-
-        print "Converting %d fields in file of %d fields in _schema (v%s)" % (len(needsConverting), len(self._schema['fields']), self._schema['version'])
-        print "Empty fields will be filled with a single '_'"
+        print "Converting %d fields in file with schema v%s" % (len(data), self._schema['version'])
 
         document = []
 
-        for line in data[1:]:
-            try:
-                fields = line.split(',')
-                headers = [m for m,n in self._schema['fields'] if n.displayName in needsConverting]
+        for i in xrange(len(data)):
+            data[i]['Category'] = category
+            data[i]['id'] = hashlib.md5(str(data[i])).hexdigest()
 
-                obj = {}
+            document.append(data[i])
 
-                for i,header in enumerate(headers):
-                    if i > len(fields):
-                        break
-                    obj[header] = fields[i]
+           # print '%d: %s' % (i, data[i])
 
-                for header in self._schema['fields']:
-                    if header not in obj:
-                        obj[header] = '_'
+        item_count = len(document)
 
-                # here we prepend a category if passed one, causing all items in the same category to
-                # automatically be sorted next to each other - and after adding a slice of randomness, serve
-                # it up as the object ID
+        return {'row_count': item_count, 'rows': document}
 
-                obj['id'] = str(category or 'essie')[:5] + hex(uuid.uuid4().bytes)[:12]
 
-                document.append(obj)
+class RDatabaseMgr(DatabaseMgr):
+    """ Handles the database start up, shut down and initial addition of items.
+    """
 
-            except:
-                pass
 
-        itemCount = len(document)
+    def __init__(self):
+        DatabaseMgr.__init__(self)
+
+        self._config = self._DefaultConfig['rethinkDB']
+
+    def connect(self, host=None, port=None):
 
         try:
-            newname = ''.join(filename.split('.')[:-1])
+            return r.connect(host or self._config['host'], port or self._config['port'])
+        except:
+            return None
 
-            f = open(filename+'.hdr', "wt")
-            print "Printing %d header descriptors to %s.hdr" % (len(self._schema['fields']), filename)
+    def dump_table(self, output='database.dump'):
 
-            f.write(json.dumps(self._schema['fields']))
-            f.close()
-        except IOError as e:
-            print "[%s:%s]: IOError - %s" % (__file__,__name__,e.message)
+        conn = r.connect('localhost', 28015)
 
-        try:
-            f = open(filename, "wt")
-            print "Printing %d records to '%s'" % (itemCount, newname)
-            f.write(json.dumps(document))
+        table = r.db('inventory').table('items').run(conn)
+
+        f = open('dump.bak', 'wt')
+
+        for i in table:
+            f.writelines(json.dumps(i) + '\n')
+
+        f.close()
+
+    def load_csv(self, filename, category=None):
+
+        global conn
+
+        records = DatabaseMgr.load_csv(self, filename, category)
+
+        result = r.db('inventory').table('items').insert(records['rows'], conflict='replace').run(conn)
+
+        print result
 
 
-            f.close()
-        except IOError as e:
-            print "[%s:%s]: IOError - %s" % (__file__,__name__,e.message)
-
-        print "[I]: CSV Conversion Complete"
+csv_files = [('/home/chris/src/python-inventory/data.csv', 'data'),
+             ('/home/chris/src/python-inventory/vision.csv', 'vision'),
+             ('/home/chris/src/python-inventory/control.csv', 'control'),
+             ('/home/chris/src/python-inventory/sensing.csv', 'sensing')]
 
 if __name__ == "__main__":
-    mgr = DatabaseMgr()
 
-    mgr.setActiveDB('rethinkdb')
-    mgr.prepCSV('/home/chris/src/python/backend/data.csv','data')
+    global ready, csv_files
+
+    mgr = RDatabaseMgr()
+
+    #mgr.dumpTable()
+
+    index = 0
+
+    for index in xrange(len(csv_files)):
+        mgr.load_csv(csv_files[index][0], csv_files[index][1])
+        time.sleep(1)

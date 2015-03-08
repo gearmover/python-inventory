@@ -1,5 +1,9 @@
 #!/usr/bin/env python
+<<<<<<< HEAD
+# -*- encoding: utf-8 -*-
+=======
 #-*- encoding: utf-8 -*-
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
 """
 GUI front end for qrencode based on the work of David Green:
@@ -9,10 +13,20 @@ http://www.omgubuntu.co.uk/2011/03/how-to-create-qr-codes-in-ubuntu/
 uses python-zbar for decoding from files and webcam
 """
 
+<<<<<<< HEAD
+import sys
+import os
+from math import ceil
+
+from PyQt4 import QtCore, QtGui, QtNetwork
+from source.qrtools import QR
+
+=======
 import sys, os
 from math import ceil
 from PyQt4 import QtCore, QtGui, QtNetwork
 from qrtools import QR
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 try:
     # import pynotify
     if not pynotify.init("QtQR"):
@@ -20,7 +34,11 @@ try:
     NOTIFY = True
 except:
     NOTIFY = False
-    
+<<<<<<< HEAD
+
+=======
+
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 __author__ = "Ramiro Algozino"
 __email__ = "algozino@gmail.com"
 __copyright__ = "copyright (C) 2011 Ramiro Algozino"
@@ -28,6 +46,10 @@ __credits__ = "David Green"
 __license__ = "GPLv3"
 __version__ = "1.4"
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
@@ -53,9 +75,15 @@ class MainWindow(QtGui.QMainWindow):
             "mms": unicode(self.trUtf8("MMS")),
             "geo": unicode(self.trUtf8("Geolocalization")),
             "wifi": unicode(self.trUtf8("WiFi Network")),
+<<<<<<< HEAD
+        }
+        # With this we make the dict bidirectional
+        self.templates.update(dict((self.templates[k], k) for k in self.templates))
+=======
             }
         # With this we make the dict bidirectional
         self.templates.update( dict((self.templates[k], k) for k in self.templates))
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
         # Tabs
         # We use this to put the tabs in a desired order.
@@ -70,7 +98,11 @@ class MainWindow(QtGui.QMainWindow):
             self.templates["mms"],
             self.templates["geo"],
             self.templates["wifi"],
+<<<<<<< HEAD
+        )
+=======
             )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         self.selector = QtGui.QComboBox()
         self.selector.addItems(self.templateNames)
         self.tabs = QtGui.QStackedWidget()
@@ -134,10 +166,18 @@ class MainWindow(QtGui.QMainWindow):
         self.phonebookBirthdayEdit = QtGui.QDateEdit()
         self.phonebookBirthdayEdit.setCalendarPopup(True)
         self.phonebookAddressLabel = QtGui.QLabel(self.trUtf8("Address:"))
+<<<<<<< HEAD
+        self.phonebookAddressEdit = QtGui.QLineEdit()
+        self.phonebookAddressEdit.setToolTip(self.trUtf8(
+            "Insert separated by commas the PO Box, room number, house number, city, prefecture, zip code and country in order"))
+        self.phonebookUrlLabel = QtGui.QLabel(self.trUtf8("URL:"))
+        self.phonebookUrlEdit = QtGui.QLineEdit()
+=======
         self.phonebookAddressEdit =  QtGui.QLineEdit()
         self.phonebookAddressEdit.setToolTip(self.trUtf8("Insert separated by commas the PO Box, room number, house number, city, prefecture, zip code and country in order"))
         self.phonebookUrlLabel = QtGui.QLabel(self.trUtf8("URL:"))
         self.phonebookUrlEdit =  QtGui.QLineEdit()
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
         #Widgets for SMS Tab
         self.smsNumberLabel = QtGui.QLabel(self.trUtf8('Telephone Number:'))
@@ -166,13 +206,23 @@ class MainWindow(QtGui.QMainWindow):
         self.wifiEncriptionLabel = QtGui.QLabel(self.trUtf8("Encription:"))
         self.wifiEncriptionType = QtGui.QComboBox()
         self.wifiEncriptionType.addItems(
+<<<<<<< HEAD
+            (
+                self.trUtf8('WEP'),
+                self.trUtf8('WPA/WPA2'),
+                self.trUtf8('No Encription'),
+            )
+        )
+
+=======
                 (
                 self.trUtf8('WEP'),
                 self.trUtf8('WPA/WPA2'),
                 self.trUtf8('No Encription'),
                 )
             )
-        
+
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
         #Widgets for QREncode Parameters Configuration
         self.optionsGroup = QtGui.QGroupBox(self.trUtf8('Parameters:'))
@@ -183,19 +233,34 @@ class MainWindow(QtGui.QMainWindow):
         self.l3 = QtGui.QLabel(self.trUtf8('&Error Correction:'))
         self.ecLevel = QtGui.QComboBox()
         self.ecLevel.addItems(
+<<<<<<< HEAD
+            (
+                self.trUtf8('Lowest'),
+                self.trUtf8('Medium'),
+                self.trUtf8('QuiteGood'),
+                self.trUtf8('Highest')
+            )
+        )
+=======
                 (
                 self.trUtf8('Lowest'),
-                self.trUtf8('Medium'), 
+                self.trUtf8('Medium'),
                 self.trUtf8('QuiteGood'),
                 self.trUtf8('Highest')
                 )
             )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
         self.l4 = QtGui.QLabel(self.trUtf8('&Margin Size:'))
         self.marginSize = QtGui.QSpinBox()
 
         #QLabel for displaying the Generated QRCode
+<<<<<<< HEAD
+        self.qrcode = QtGui.QLabel(
+            self.trUtf8('Start typing to create QR Code\n or  drop here image files for decoding.'))
+=======
         self.qrcode = QtGui.QLabel(self.trUtf8('Start typing to create QR Code\n or  drop here image files for decoding.'))
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         self.qrcode.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
         self.scroll = QtGui.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -206,8 +271,15 @@ class MainWindow(QtGui.QMainWindow):
         self.decodeButton = QtGui.QPushButton(QtGui.QIcon.fromTheme(u'preview-file'), self.trUtf8('&Decode'))
 
         self.decodeMenu = QtGui.QMenu()
+<<<<<<< HEAD
+        self.decodeFileAction = self.decodeMenu.addAction(QtGui.QIcon.fromTheme(u'document-open'),
+                                                          self.trUtf8('Decode from &File'))
+        self.decodeWebcamAction = self.decodeMenu.addAction(QtGui.QIcon.fromTheme(u'image-png'),
+                                                            self.trUtf8('Decode from &Webcam'))
+=======
         self.decodeFileAction = self.decodeMenu.addAction(QtGui.QIcon.fromTheme(u'document-open'), self.trUtf8('Decode from &File'))
         self.decodeWebcamAction = self.decodeMenu.addAction(QtGui.QIcon.fromTheme(u'image-png'), self.trUtf8('Decode from &Webcam'))
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         self.decodeButton.setMenu(self.decodeMenu)
 
         self.exitAction = QtGui.QAction(QtGui.QIcon.fromTheme(u'application-exit'), self.trUtf8('E&xit'), self)
@@ -399,11 +471,19 @@ class MainWindow(QtGui.QMainWindow):
         self.smsBodyEdit.textChanged.connect(
             lambda: self.smsCharCount.setText(
                 unicode(self.trUtf8("characters count: %s - %d message(s)")) % (
-                len(self.smsBodyEdit.toPlainText()),
-                ceil(len(self.smsBodyEdit.toPlainText()) / 160.0)
-                )                    
+<<<<<<< HEAD
+                    len(self.smsBodyEdit.toPlainText()),
+                    ceil(len(self.smsBodyEdit.toPlainText()) / 160.0)
                 )
             )
+        )
+=======
+                len(self.smsBodyEdit.toPlainText()),
+                ceil(len(self.smsBodyEdit.toPlainText()) / 160.0)
+                )
+                )
+            )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         self.mmsNumberEdit.textChanged.connect(self.qrencode)
         self.mmsBodyEdit.textChanged.connect(self.qrencode)
         self.telephoneEdit.textChanged.connect(self.qrencode)
@@ -424,7 +504,11 @@ class MainWindow(QtGui.QMainWindow):
         self.qrcode.setAcceptDrops(True)
         self.qrcode.__class__.dragEnterEvent = self.dragEnterEvent
         self.qrcode.__class__.dropEvent = self.dropEvent
-        
+<<<<<<< HEAD
+
+=======
+
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         # Network acces for remote images drag&drop support
         self.NetAccessMgr = QtNetwork.QNetworkAccessManager()
         self.NetAccessMgr.finished.connect(self.handleNetworkData)
@@ -437,6 +521,28 @@ class MainWindow(QtGui.QMainWindow):
             "url": unicode(self.urlEdit.text()),
             "bookmark": ( unicode(self.bookmarkTitleEdit.text()), unicode(self.bookmarkUrlEdit.text()) ),
             "email": unicode(self.emailEdit.text()),
+<<<<<<< HEAD
+            "emailmessage": (unicode(self.emailEdit.text()), unicode(self.emailSubjectEdit.text()),
+                             unicode(self.emailBodyEdit.toPlainText()) ),
+            "telephone": unicode(self.telephoneEdit.text()),
+            "phonebook": (('N', unicode(self.phonebookNameEdit.text())),
+                          ('TEL', unicode(self.phonebookTelEdit.text())),
+                          ('EMAIL', unicode(self.phonebookEMailEdit.text())),
+                          ('NOTE', unicode(self.phonebookNoteEdit.text())),
+                          ('BDAY', unicode(self.phonebookBirthdayEdit.date().toString(
+                              "yyyyMMdd")) if self.phonebookBirthdayLabel.isChecked() else ""),  #YYYYMMDD
+                          ('ADR', unicode(self.phonebookAddressEdit.text())),
+                          #The fields divided by commas (,) denote PO box, room number, house number, city, prefecture, zip code and country, in order.
+                          ('URL', unicode(self.phonebookUrlEdit.text())),
+                          # ('NICKNAME', ''),
+            ),
+            "sms": ( unicode(self.smsNumberEdit.text()), unicode(self.smsBodyEdit.toPlainText()) ),
+            "mms": ( unicode(self.mmsNumberEdit.text()), unicode(self.mmsBodyEdit.toPlainText()) ),
+            "geo": ( unicode(self.geoLatEdit.text()), unicode(self.geoLongEdit.text()) ),
+            "wifi": (
+            unicode(self.wifiSSIDEdit.text()), (u"WEP", u"WPA", u"nopass")[self.wifiEncriptionType.currentIndex()],
+            unicode(self.wifiPasswordEdit.text()))
+=======
             "emailmessage": ( unicode(self.emailEdit.text()), unicode(self.emailSubjectEdit.text()), unicode(self.emailBodyEdit.toPlainText()) ),
             "telephone": unicode(self.telephoneEdit.text()),
             "phonebook": (('N',unicode(self.phonebookNameEdit.text())),
@@ -452,23 +558,38 @@ class MainWindow(QtGui.QMainWindow):
             "mms": ( unicode(self.mmsNumberEdit.text()), unicode(self.mmsBodyEdit.toPlainText()) ),
             "geo": ( unicode(self.geoLatEdit.text()), unicode(self.geoLongEdit.text()) ),
             "wifi": ( unicode(self.wifiSSIDEdit.text()), (u"WEP",u"WPA",u"nopass")[self.wifiEncriptionType.currentIndex()], unicode(self.wifiPasswordEdit.text()))
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         }
 
         data_type = unicode(self.templates[unicode(self.selector.currentText())])
         data = data_fields[data_type]
-        
+<<<<<<< HEAD
+
+        level = (u'L', u'M', u'Q', u'H')
+=======
+
         level = (u'L',u'M',u'Q',u'H')
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
         if data:
             if data_type == 'emailmessage' and data[1] == '' and data[2] == '':
                 data_type = 'email'
                 data = data_fields[data_type]
+<<<<<<< HEAD
+            qr = QR(pixel_size=unicode(self.pixelSize.value()),
+                    data=data,
+                    level=unicode(level[self.ecLevel.currentIndex()]),
+                    margin_size=unicode(self.marginSize.value()),
+                    data_type=data_type,
+            )
+=======
             qr = QR(pixel_size = unicode(self.pixelSize.value()),
                     data = data,
                     level = unicode(level[self.ecLevel.currentIndex()]),
                     margin_size = unicode(self.marginSize.value()),
                     data_type = data_type,
                     )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
             error = 1
             if type(fileName) is not unicode:
                 error = qr.encode()
@@ -483,7 +604,11 @@ class MainWindow(QtGui.QMainWindow):
                         "QtQR",
                         unicode(self.trUtf8("ERROR: Something went wrong while trying to generate the QR Code.")),
                         "qtqr"
+<<<<<<< HEAD
+                    )
+=======
                         )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
                     n.show()
                 else:
                     print "Something went wrong while trying to generate the QR Code"
@@ -498,7 +623,22 @@ class MainWindow(QtGui.QMainWindow):
         #print filterStr
         fn = QtGui.QFileDialog.getSaveFileName(
             self,
-            self.trUtf8('Save QRCode'), 
+<<<<<<< HEAD
+            self.trUtf8('Save QRCode'),
+            filter=filterStr
+        )
+        if fn:
+            if not fn.toLower().endsWith(u".png") \
+                    and not fn.toLower().endsWith(u".eps") \
+                    and not fn.toLower().endsWith(u".svg") \
+                    and not fn.toLower().endsWith(u".ansi") \
+                    and not fn.toLower().endsWith(u".ansi256") \
+                    and not fn.toLower().endsWith(u".ascii") \
+                    and not fn.toLower().endsWith(u".asciii") \
+                    and not fn.toLower().endsWith(u".utf8") \
+                    and not fn.toLower().endsWith(u".ansiutf8"):
+=======
+            self.trUtf8('Save QRCode'),
             filter=filterStr
             )
         if fn:
@@ -511,6 +651,7 @@ class MainWindow(QtGui.QMainWindow):
             and not fn.toLower().endsWith(u".asciii") \
             and not fn.toLower().endsWith(u".utf8") \
             and not fn.toLower().endsWith(u".ansiutf8"):
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
                 fn += u".png"
             self.qrencode(unicode(fn))
             if NOTIFY:
@@ -518,14 +659,25 @@ class MainWindow(QtGui.QMainWindow):
                     unicode(self.trUtf8("Save QR Code")),
                     unicode(self.trUtf8("QR Code succesfully saved to %s")) % fn,
                     "qtqr"
+<<<<<<< HEAD
+                )
+                n.show()
+            else:
+                QtGui.QMessageBox.information(
+                    self,
+                    unicode(self.trUtf8('Save QRCode')),
+                    unicode(self.trUtf8('QRCode succesfully saved to <b>%s</b>.')) % fn
+                )
+=======
                     )
                 n.show()
             else:
                QtGui.QMessageBox.information(
-                    self, 
+                    self,
                     unicode(self.trUtf8('Save QRCode')),
                     unicode(self.trUtf8('QRCode succesfully saved to <b>%s</b>.')) % fn
                     )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
     def decodeFile(self, fn=None):
         if not fn:
@@ -533,7 +685,11 @@ class MainWindow(QtGui.QMainWindow):
                 self,
                 self.trUtf8('Open QRCode'),
                 filter=self.trUtf8('Images (*.png *.jpg);; All Files (*.*)')
+<<<<<<< HEAD
+            )
+=======
                 )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
             )
         if os.path.isfile(fn):
             qr = QR(filename=fn)
@@ -546,6 +702,16 @@ class MainWindow(QtGui.QMainWindow):
                     unicode(self.trUtf8('No QRCode could be found in file: <b>%s</b>.')) % fn
                 )
             qr.destroy()
+<<<<<<< HEAD
+        #        else:
+        #            QtGui.QMessageBox.information(
+        #                self,
+        #                u"Decode from file",
+        #                u"The file <b>%s</b> doesn't exist." %
+        #                os.path.abspath(fn),
+        #                QtGui.QMessageBox.Ok
+        #            )
+=======
 #        else:
 #            QtGui.QMessageBox.information(
 #                self,
@@ -554,6 +720,7 @@ class MainWindow(QtGui.QMainWindow):
 #                os.path.abspath(fn),
 #                QtGui.QMessageBox.Ok
 #            )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
     def showInfo(self, qr):
         dt = qr.data_type
@@ -563,6 +730,40 @@ class MainWindow(QtGui.QMainWindow):
             for d in data:
                 print d.encode(u"utf-8")
         elif type(data) == dict:
+<<<<<<< HEAD
+            # FIX-ME: Print the decoded symbols
+            print "Dict"
+            print data.keys()
+            print data.values()
+        else:
+            print data.encode(u"utf-8")
+        msg = {
+            'text': lambda: unicode(self.trUtf8("QRCode contains the following text:\n\n%s")) % (data),
+            'url': lambda: unicode(self.trUtf8("QRCode contains the following url address:\n\n%s")) % (data),
+            'bookmark': lambda: unicode(self.trUtf8("QRCode contains a bookmark:\n\nTitle: %s\nURL: %s")) % (data),
+            'email': lambda: unicode(self.trUtf8("QRCode contains the following e-mail address:\n\n%s")) % (data),
+            'emailmessage': lambda: unicode(
+                self.trUtf8("QRCode contains an e-mail message:\n\nTo: %s\nSubject: %s\nMessage: %s")) % (data),
+            'telephone': lambda: unicode(self.trUtf8("QRCode contains a telephone number: ")) + (data),
+            'phonebook': lambda: unicode(self.trUtf8(
+                "QRCode contains a phonebook entry:\n\nName: %s\nTel: %s\nE-Mail: %s\nNote: %s\nBirthday: %s\nAddress: %s\nURL: %s")) %
+                                 (data.get('N') or "",
+                                  data.get('TEL') or "",
+                                  data.get('EMAIL') or "",
+                                  data.get('NOTE') or "",
+                                  QtCore.QDate.fromString(data.get('BDAY') or "", 'yyyyMMdd').toString(),
+                                  data.get('ADR') or "",
+                                  data.get('URL') or ""),
+            'sms': lambda: unicode(self.trUtf8("QRCode contains the following SMS message:\n\nTo: %s\nMessage: %s")) % (
+            data),
+            'mms': lambda: unicode(self.trUtf8("QRCode contains the following MMS message:\n\nTo: %s\nMessage: %s")) % (
+            data),
+            'geo': lambda: unicode(
+                self.trUtf8("QRCode contains the following coordinates:\n\nLatitude: %s\nLongitude:%s")) % (data),
+            'wifi': lambda: unicode(self.trUtf8(
+                "QRCode contains the following WiFi Network Configuration:\n\nSSID: %s\nEncription Type: %s\nPassword: %s")) % (
+                            data)
+=======
                 # FIX-ME: Print the decoded symbols
                 print "Dict"
                 print data.keys()
@@ -577,17 +778,18 @@ class MainWindow(QtGui.QMainWindow):
             'emailmessage': lambda : unicode(self.trUtf8("QRCode contains an e-mail message:\n\nTo: %s\nSubject: %s\nMessage: %s")) % (data),
             'telephone': lambda : unicode(self.trUtf8("QRCode contains a telephone number: ")) + (data),
             'phonebook': lambda : unicode(self.trUtf8("QRCode contains a phonebook entry:\n\nName: %s\nTel: %s\nE-Mail: %s\nNote: %s\nBirthday: %s\nAddress: %s\nURL: %s")) %
-                (data.get('N') or "", 
-                 data.get('TEL') or "", 
-                 data.get('EMAIL') or "", 
+                (data.get('N') or "",
+                 data.get('TEL') or "",
+                 data.get('EMAIL') or "",
                  data.get('NOTE') or "",
-                 QtCore.QDate.fromString(data.get('BDAY') or "",'yyyyMMdd').toString(), 
+                 QtCore.QDate.fromString(data.get('BDAY') or "",'yyyyMMdd').toString(),
                  data.get('ADR') or "",
                  data.get('URL') or ""),
             'sms': lambda : unicode(self.trUtf8("QRCode contains the following SMS message:\n\nTo: %s\nMessage: %s")) % (data),
             'mms': lambda : unicode(self.trUtf8("QRCode contains the following MMS message:\n\nTo: %s\nMessage: %s")) % (data),
             'geo': lambda : unicode(self.trUtf8("QRCode contains the following coordinates:\n\nLatitude: %s\nLongitude:%s")) % (data),
             'wifi': lambda : unicode(self.trUtf8("QRCode contains the following WiFi Network Configuration:\n\nSSID: %s\nEncription Type: %s\nPassword: %s")) % (data)
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         }
         wanna = self.trUtf8("\n\nDo you want to ")
         action = {
@@ -611,7 +813,11 @@ class MainWindow(QtGui.QMainWindow):
                 QtGui.QMessageBox.No |
                 QtGui.QMessageBox.Yes,
                 self
+<<<<<<< HEAD
+            )
+=======
                 )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
             msgBox.addButton(self.trUtf8("&Edit"), QtGui.QMessageBox.ApplyRole)
             msgBox.setDefaultButton(QtGui.QMessageBox.Yes)
             rsp = msgBox.exec_()
@@ -622,7 +828,11 @@ class MainWindow(QtGui.QMainWindow):
                 msg[qr.data_type]() + action[qr.data_type],
                 QtGui.QMessageBox.Ok,
                 self
+<<<<<<< HEAD
+            )
+=======
                 )
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
             msgBox.addButton(self.trUtf8("&Edit"), QtGui.QMessageBox.ApplyRole)
             msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
             rsp = msgBox.exec_()
@@ -630,7 +840,11 @@ class MainWindow(QtGui.QMainWindow):
         if rsp == QtGui.QMessageBox.Yes:
             #Open Link
             if qr.data_type == 'email':
+<<<<<<< HEAD
+                link = 'mailto:' + data
+=======
                 link = 'mailto:'+ data
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
             elif qr.data_type == 'emailmessage':
                 link = 'mailto:%s?subject=%s&body=%s' % (data)
             elif qr.data_type == 'geo':
@@ -696,7 +910,11 @@ class MainWindow(QtGui.QMainWindow):
                 self.tabs.setCurrentIndex(tabIndex)
             elif qr.data_type == 'wifi':
                 self.wifiSSIDEdit.setText(data[0] or "")
+<<<<<<< HEAD
+                self.wifiEncriptionType.setCurrentIndex({u"WEP": 0, u"WPA": 1, u"nopass": 2}.get(data[1]) or 0)
+=======
                 self.wifiEncriptionType.setCurrentIndex({u"WEP":0,u"WPA":1,u"nopass":2}.get(data[1]) or 0)
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
                 self.wifiPasswordEdit.setText(data[2] or "")
                 self.tabs.setCurrentIndex(tabIndex)
 
@@ -722,7 +940,12 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.about(
             self,
             self.trUtf8("About QtQR"),
+<<<<<<< HEAD
+            unicode(self.trUtf8(
+                '<h1>QtQR %s</h1><p>A simple software for creating and decoding QR Codes that uses <a href="https://code.launchpad.net/~qr-tools-developers/qr-tools/python-qrtools-trunk">python-qrtools</a> as backend. Both are part of the <a href="https://launchpad.net/qr-tools">QR Tools</a> project.</p><p></p><p>This is Free Software: GNU-GPLv3</p><p></p><p>Please visit our website for more information and to check out the code:<br /><a href="https://launchpad.net/~qr-tools-developers/qtqr">https://launchpad.net/~qr-tools-developers/qtqr</p><p>copyright &copy; Ramiro Algozino &lt;<a href="mailto:algozino@gmail.com">algozino@gmail.com</a>&gt;</p>')) % __version__,
+=======
             unicode(self.trUtf8('<h1>QtQR %s</h1><p>A simple software for creating and decoding QR Codes that uses <a href="https://code.launchpad.net/~qr-tools-developers/qr-tools/python-qrtools-trunk">python-qrtools</a> as backend. Both are part of the <a href="https://launchpad.net/qr-tools">QR Tools</a> project.</p><p></p><p>This is Free Software: GNU-GPLv3</p><p></p><p>Please visit our website for more information and to check out the code:<br /><a href="https://launchpad.net/~qr-tools-developers/qtqr">https://launchpad.net/~qr-tools-developers/qtqr</p><p>copyright &copy; Ramiro Algozino &lt;<a href="mailto:algozino@gmail.com">algozino@gmail.com</a>&gt;</p>')) % __version__,
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         )
 
     def dragEnterEvent(self, event):
@@ -735,16 +958,24 @@ class MainWindow(QtGui.QMainWindow):
             if fn:
                 self.decodeFile(unicode(fn))
             else:
-                print "DEBUG: Downloading dropped file from %s" % url.toString() 
+<<<<<<< HEAD
+                print "DEBUG: Downloading dropped file from %s" % url.toString()
+=======
+                print "DEBUG: Downloading dropped file from %s" % url.toString()
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
                 self.NetAccessMgr.get(QtNetwork.QNetworkRequest(url))
                 # FIX-ME: We should check if the download gets timeout.
                 # and notify that we are downloading, the download could
-                # take some seconds to complete.  
+                # take some seconds to complete.
 
     def handleNetworkData(self, QNetReply):
         print "DEBUG: Finished downloading file."
         tmpfn = '/tmp/qrtemp.png'
+<<<<<<< HEAD
+        fn = open(tmpfn, "w")
+=======
         fn = open(tmpfn,"w")
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         fn.write(QNetReply.readAll())
         fn.close()
         self.decodeFile(tmpfn)
@@ -760,10 +991,18 @@ class VideoDevices(QtGui.QDialog):
         self.setWindowTitle(self.tr('Decode from Webcam'))
         self.cameraIcon = QtGui.QIcon.fromTheme("camera")
         self.icon = QtGui.QLabel()
+<<<<<<< HEAD
+        self.icon.setPixmap(self.cameraIcon.pixmap(64, 64).scaled(64, 64))
+        self.videoDevice = QtGui.QComboBox()
+        self.videoDevice.addItems([vd[0] for vd in self.videoDevices])
+        self.label = QtGui.QLabel(self.tr(
+            "You are about to decode from your webcam. Please put the code in front of your camera with a good light source and keep it steady.\nOnce you see a green rectangle you can close the window by pressing any key.\n\nPlease select the video device you want to use for decoding:"))
+=======
         self.icon.setPixmap(self.cameraIcon.pixmap(64,64).scaled(64,64))
         self.videoDevice = QtGui.QComboBox()
         self.videoDevice.addItems([vd[0] for vd in self.videoDevices])
         self.label = QtGui.QLabel(self.tr("You are about to decode from your webcam. Please put the code in front of your camera with a good light source and keep it steady.\nOnce you see a green rectangle you can close the window by pressing any key.\n\nPlease select the video device you want to use for decoding:"))
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         self.label.setWordWrap(True)
         self.Buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         self.Buttons.accepted.connect(self.accept)
@@ -778,30 +1017,70 @@ class VideoDevices(QtGui.QDialog):
         self.layout.addLayout(self.hlayout)
         self.layout.addStretch()
         self.layout.addWidget(self.Buttons)
-        
+<<<<<<< HEAD
+
         self.setLayout(self.layout)
-        
+
+=======
+
+        self.setLayout(self.layout)
+
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
     def getVideoDevices(self):
         if os.path.exists("/dev/v4l/by-id"):
             for dev in os.listdir("/dev/v4l/by-id"):
                 try:
+<<<<<<< HEAD
+                    yield ([
+                               " ".join(dev.split("-")[1].split("_")),
+                               os.path.join("/dev/v4l/by-id", dev)
+                           ])
+                except:
+                    yield ([
+                               dev,
+                               os.path.join("/dev/v4l/by-id", dev)
+                           ])
+=======
                     yield([
-                        " ".join(dev.split("-")[1].split("_")), 
+                        " ".join(dev.split("-")[1].split("_")),
                         os.path.join("/dev/v4l/by-id", dev)
                     ])
                 except:
                     yield([
-                        dev, 
+                        dev,
                         os.path.join("/dev/v4l/by-id", dev)
                     ])
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     # This is to make Qt use locale configuration; i.e. Standard Buttons
-    # in your system's language. 
+    # in your system's language.
     locale = unicode(QtCore.QLocale.system().name())
+<<<<<<< HEAD
+    translator = QtCore.QTranslator()
+    # translator.load(os.path.join(os.path.abspath(
+    # os.path.dirname(__file__)),
+    # "qtqr_" + locale))
+    # We load from standard location the translations
+    translator.load("qtqr_" + locale,
+                    QtCore.QLibraryInfo.location(
+                        QtCore.QLibraryInfo.TranslationsPath)
+    )
+    app.installTranslator(translator)
+    qtTranslator = QtCore.QTranslator()
+    qtTranslator.load("qt_" + locale,
+                      QtCore.QLibraryInfo.location(
+                          QtCore.QLibraryInfo.TranslationsPath)
+    )
+    app.installTranslator(qtTranslator);
+
+    mw = MainWindow()
+    mw.show()
+    if len(app.argv()) > 1:
+=======
     translator=QtCore.QTranslator()
     # translator.load(os.path.join(os.path.abspath(
         # os.path.dirname(__file__)),
@@ -811,17 +1090,18 @@ if __name__ == '__main__':
                     QtCore.QLibraryInfo.location(
                     QtCore.QLibraryInfo.TranslationsPath)
                     )
-    app.installTranslator(translator)    
+    app.installTranslator(translator)
     qtTranslator=QtCore.QTranslator()
     qtTranslator.load("qt_" + locale,
                     QtCore.QLibraryInfo.location(
                     QtCore.QLibraryInfo.TranslationsPath)
                     )
-    app.installTranslator(qtTranslator);   
-    
+    app.installTranslator(qtTranslator);
+
     mw = MainWindow()
     mw.show()
     if len(app.argv())>1:
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         #Open the file and try to decode it
         for fn in app.argv()[1:]:
             # We should check if the file exists.

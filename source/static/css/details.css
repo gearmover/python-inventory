@@ -4,14 +4,14 @@
     border: none;
     font-family: 'Open Sans';
     height: 16px;
-    padding:2px;
+    padding: 2px;
 }
 
 .d-model, .d-model pre {
-    font-weight:bold;
-    font-size:24pt;
+    font-weight: bold;
+    font-size: 24pt;
     padding-bottom: 30px;
-    min-width:150px;
+    min-width: 150px;
     width: 450px;
     max-width: 450px;
 }
@@ -20,7 +20,7 @@
     font-style: italic;
     font-size: 16pt;
     margin-left: 20px;
-        min-width:150px;
+    min-width: 150px;
     width: 450px;
     max-width: 450px;
 }
@@ -34,9 +34,10 @@
 .d-description {
     width: 650px;
 }
+
 .d-description pre {
     font-size: 12pt;
-    min-width:150px;
+    min-width: 150px;
     width: 650px;
     max-width: 650px;
 }
@@ -44,22 +45,46 @@
 .d-sourcegrant {
     width: 450px;
 }
+
 .d-sourcegrant pre {
     font-size: 12pt;
-    min-width:150px;
+    min-width: 150px;
     width: 650px;
     max-width: 650px;
 }
 
+.d-qr {
+    position: absolute;
+    right: 410px;
+    top: 55px;
+}
+
+.d-upc {
+    position: absolute;
+    right: 395px;
+    top: 175px;
+    width: 140px;
+    height: 60px;
+}
+
 .d-room, .d-location, .d-ocodecal, .d-calibrationdoc, .d-calibrationexpires, .serial {
     font-size: 12pt;
-    min-width:150px;
+    min-width: 150px;
     width: 450px;
     max-width: 450px;
 }
+
 .d-room pre, .d-location pre, .d-ocodecal pre, .d-calibrationdoc pre, .d-calibrationexpires pre, .serial pre {
     font-size: 12pt;
-    min-width:150px;
+    min-width: 150px;
     width: 350px;
     max-width: 350px;
+}
+
+.update-button {
+    position: absolute;
+    right: 418px;
+    top: 15px;
+    height: 30px;
+    width: 100px;
 }

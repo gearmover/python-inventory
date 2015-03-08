@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#
+# encrypts any .csv files in the current directory using tar and openssl
+#
+#  usage: encryptDB > my-encrypted.db
+#
+#  Author: Chris Pergrossi
+#  License: MIT
+#
+
+tar -Oc *.csv | openssl enc -aes-128-cbc -a

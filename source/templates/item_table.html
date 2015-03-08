@@ -23,9 +23,9 @@
 {% endfor %}
 
 <ul style="visibility:hidden;" id="flashmsgs">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% for category,message in messages %}
-                <li class="{{ category }}">{{message}}</li>
-            {% endfor %}
-        {% endwith %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category,message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    {% endwith %}
 </ul>

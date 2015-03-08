@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Items List</title>
+    <link rel="stylesheet"
+          href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href="/static/css/style.css" type='text/css' rel="stylesheet"/>
+    <link href="/static/css/details.css" type='text/css' rel="stylesheet"/>
+
+    <style type="text/css">
+        html {
+            height: 100%
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0
+        }
+
+        #map-canvas {
+            height: 100%
+        }
+    </style>
+</head>
+<body>
+
+<nav style="width:100%">
+    <span style="position:absolute;left:20px;top:0px;font-size:16pt;"><strong><a id="pageLeft">
+        &lt;&lt;</a></strong></span>
+
+    <div><span id="low"></span> - <span id="high"></span> of <span id="count"></span></div>
+    <span style="position:absolute;right:20px;top:0px;font-size:16pt;"><strong><a id="pageRight">
+        &gt;&gt;</a></strong></span>
+</nav>
+
+<div class="container datatable" style="width:100%;">
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script src="/static/js/notify.min.js"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var scroller;
+        var restore;
+
+        var toggleDetails = function (obj, id, show) {
+
+            try {
+                $(".nohide").removeClass('nohide');
+                $(".expanded").removeClass('expanded');
+            } catch (e) {
+            }
+
+            if (show) {
+                obj.classList.add('expanded');
+            } else {
+                obj.classList.remove('expanded');
+            }
+
+
+            var details = document.querySelector("#details-" + obj.id);
+
+            if (!details) details = document.createElement('div');
+
+            details.id = 'details-' + obj.id;
+
+            (function (item, id) {
+                $.post('/items/' + id, function (data) {
+                    item.innerHTML = data;
+                });
+            })(details, String(obj.id));
+
+            details.style.top = String(obj.offsetTop + 30) + 'px';
+            details.classList.add('details');
+
+            if (show)
+                details.classList.add('nohide');
+            else
+                details.classList.remove('nohide');
+
+            var width = $(".item")[0].offsetWidth - 35;
+            var height = '290px';
+
+            console.log("width: " + width + ", height: " + height);
+
+            details.style.width = width + 'px';
+            details.style.height = height;
+
+            document.body.appendChild(details);
+        };
+
+        $.notify.defaults({'position': 'bottom left'});
+
+        var totalCount = 0;
+
+        var min = function (a, b) {
+            return (a > b) ? b : a;
+        };
+
+        var updateData = function (selector, offset, limit) {
+
+            var expanded = $(".expanded");
+
+            document.querySelector("#low").innerHTML = String(min(offset, totalCount));
+            document.querySelector("#high").innerHTML = String(min(offset + limit, totalCount));
+            document.querySelector("#count").innerHTML = String(totalCount);
+
+            $.get('/json/items/' + Number(offset) + '/' + Number(limit), function (data) {
+                data = JSON.parse(data).items;
+
+                var parent = document.createElement('table');
+
+                var tmp = false;
+
+                for (var i = 0; i < data.length; i++) {
+                    var elem = document.createElement('tr');
+
+                    elem.classList.add('item');
+                    elem.id = data[i].id;
+
+                    if (!tmp) {
+
+                        for (var j in data[i]) {
+                            if (data[i].hasOwnProperty(j) && j !== 'id') {
+                                elem.innerHTML += '<th>' + j + '</th>';
+                            }
+                        }
+
+                        tmp = true;
+                    }
+                    else {
+                        for (var j in data[i]) {
+                            if (data[i].hasOwnProperty(j) && j !== 'id') {
+
+                                elem.innerHTML += '<td>' + data[i][j] + '</td>'
+                            }
+                        }
+                    }
+
+                    parent.appendChild(elem);
+                }
+                document.querySelector(selector).innerHTML = "";
+                document.querySelector(selector).appendChild(parent);
+
+
+                for (var b = 0; b < expanded.length; b++) {
+                    try {
+                        var item = $("#" + expanded[b].id)[0];
+                        toggleDetails(item, item.id, true);
+                    } catch (e) {
+                    }
+                }
+
+                $(".item").on('click', function () {
+                    if (this.classList.contains('expanded')) {
+                        toggleDetails(this, this.id, false);
+                        updateData('.datatable', offset, limit);
+                    } else {
+                        toggleDetails(this, this.id, true);
+                        updateData('.datatable', offset, limit);
+                    }
+                });
+
+                var flashmsg = $("#flashmsgs li");
+
+                if (flashmsg.length) {
+                    for (var i = 0; i < flashmsg.length; i++) {
+                        $.notify(flashmsg[i].innerHTML, flashmsg[i].classList.toString());
+                    }
+                }
+            });
+        };
+
+        var offset = 0;
+        var limit = 40;
+
+        $.get("/items/count", function (data) {
+            console.log(data);
+            totalCount = JSON.parse(data).count;
+
+            document.querySelector("#low").innerHTML = String(min(offset, totalCount));
+            document.querySelector("#high").innerHTML = String(min(offset + limit, totalCount));
+            document.querySelector("#count").innerHTML = String(totalCount);
+        });
+
+        updateData('.datatable', offset, limit);
+
+        //setInterval( function() { updateData(".datatable",offset,limit); offset%= 100; }, 10000);
+
+        $(".item").on('click', function () {
+            if (this.classList.contains('expanded')) {
+                toggleDetails(this, this.id, false);
+                updateData('.datatable', offset, limit);
+            } else {
+                toggleDetails(this, this.id, true);
+                updateData('.datatable', offset, limit);
+            }
+        });
+
+        function max(a, b) {
+            return (a > b) ? a : b;
+        }
+
+        function pageRight() {
+            offset = min(totalCount - limit, offset + limit);
+
+            $(".details").hide();
+
+            $(".expanded").removeClass('.expanded');
+            item = undefined;
+
+            updateData('.datatable', offset, limit);
+        }
+
+        function pageLeft() {
+            offset = max(offset - limit, 0);
+
+            $(".details").hide();
+
+            $(".expanded").removeClass('.expanded');
+            item = undefined;
+
+            updateData('.datatable', offset, limit);
+        }
+
+        $(document).ready(function () {
+            $("#pageLeft")[0].onclick = pageLeft;
+            $("#pageRight")[0].onclick = pageRight;
+        });
+
+        window.updateItem = function(that) {
+            console.log('submitting for id: "'+that+'"');
+
+            var fields = $('#form-'+that+' pre');
+            var doc = {};
+
+            for( var i=0; i<fields.length; i++ ) {
+                try {
+                    doc[$(fields[i]).attr('class')] = fields[i].innerText;
+                } catch(e) {}
+            }
+
+            console.log(doc);
+        }
+    });
+
+</script>
+
+<script src="/static/js/list_item.js" type="text/javascript"></script>
+
+</body>
+</html>
