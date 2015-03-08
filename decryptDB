@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#
+# decrypts data piped in STDIN using tar and openssl. complement of encryptDB.
+#
+#   usage: cat my_encrypted.db | decryptDB [output-directory/]
+#
+#  Author: Chris Pergrossi
+#  License: MIT
+#
+
+[ "$1" != "" ] && CD="-C $1" || CD=""
+
+openssl enc -d -aes-128-cbc -a | tar -xv $CD
