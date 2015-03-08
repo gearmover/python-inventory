@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 # Authors:
+<<<<<<< HEAD
 # David Green <david4dev@gmail.com>
+=======
+#   David Green <david4dev@gmail.com>
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 #   Ramiro Algozino <algozino@gmail.com>
 #
 # qrtools.py: Library for encoding/decoding QR Codes (2D barcodes).
@@ -26,7 +30,10 @@ import time
 import shutil
 import hashlib
 import zbar
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
 try:
     from PIL import Image
 except ImportError:
@@ -34,8 +41,13 @@ except ImportError:
 import re
 from codecs import BOM_UTF8
 
+<<<<<<< HEAD
 
 class QR(object):
+=======
+class QR(object):
+
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
     def encode_url(data):
         data_lower = data.lower()
         if data_lower.startswith(u"http://"):
@@ -50,6 +62,7 @@ class QR(object):
     #use these for custom data formats eg. url, phone number, VCARD
     #data should be an unicode object or a list of unicode objects
     data_encode = {
+<<<<<<< HEAD
         'text': lambda data: data,
         'url': encode_url,
         'email': lambda data: 'mailto:' + re.compile(
@@ -67,18 +80,44 @@ class QR(object):
         # [('N','Name'),('TEL', '231698890'), ...]
         'phonebook': lambda data: "MECARD:" + ";".join([":".join(i) for i in data]) + ";",
         'wifi': lambda data: "WIFI:S:" + data[0] + ";T:" + data[1] + ";P:" + data[2] + ";;",
+=======
+        'text' : lambda data: data,
+        'url' : encode_url,
+        'email' :lambda data: 'mailto:' + re.compile(
+                r'^mailto:', re.IGNORECASE
+            ).sub('', data),
+        'emailmessage' : lambda data : 'MATMSG:TO:' + data[0] + ';SUB:' + data[1] + ';BODY:' + data[2] + ';;',
+        'telephone' : lambda data: 'tel:' + re.compile(
+                r'^tel:', re.IGNORECASE
+            ).sub('', data),
+        'sms' : lambda data : 'SMSTO:' + data[0] + ':' + data[1],
+        'mms' : lambda data : 'MMSTO:' + data[0] + ':' + data[1],
+        'geo' : lambda data : 'geo:' + data[0] + ',' + data[1],
+        'bookmark': lambda data : "MEBKM:TITLE:" + data[0] + ";URL:" + data[1] + ";;",
+        # phonebook or meCard should be a list of tuples like this:
+        # [('N','Name'),('TEL', '231698890'), ...]
+        'phonebook': lambda data: "MECARD:" + ";".join([":".join(i) for i in data]) + ";",
+        'wifi': lambda data: "WIFI:S:" + data[0] + ";T:" + data[1] + ";P:" + data[2] +";;",
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
     }
 
     data_decode = {
         'text': lambda data: data,
         'url': lambda data: data,
+<<<<<<< HEAD
         'email': lambda data: data.replace(u"mailto:", u"").replace(u"MAILTO:", u""),
         'emailmessage': lambda data: re.findall(u"MATMSG:TO:(.*);SUB:(.*);BODY:(.*);;", data, re.IGNORECASE)[0],
         'telephone': lambda data: data.replace(u"tel:", u"").replace(u"TEL:", u""),
+=======
+        'email': lambda data: data.replace(u"mailto:",u"").replace(u"MAILTO:",u""),
+        'emailmessage': lambda data: re.findall(u"MATMSG:TO:(.*);SUB:(.*);BODY:(.*);;", data, re.IGNORECASE)[0],
+        'telephone': lambda data: data.replace(u"tel:",u"").replace(u"TEL:",u""),
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         'sms': lambda data: re.findall(u"SMSTO:(.*):(.*)", data, re.IGNORECASE)[0],
         'mms': lambda data: re.findall(u"MMSTO:(.*):(.*)", data, re.IGNORECASE)[0],
         'geo': lambda data: re.findall(u"GEO:(.*),(.*)", data, re.IGNORECASE)[0],
         'bookmark': lambda data: re.findall(u"MEBKM:TITLE:(.*);URL:(.*);;", data, re.IGNORECASE)[0],
+<<<<<<< HEAD
         'phonebook': lambda data: dict(re.findall("(.*?):(.*?);", data.replace("MECARD:", ""), re.IGNORECASE)),
         'wifi': lambda data: re.findall(u"WIFI:S:(.*);T:(.*);P:(.*);;", data, re.IGNORECASE)[0],
     }
@@ -113,6 +152,31 @@ class QR(object):
     def __init__(
             self, data=u'NULL', pixel_size=3, level='L', margin_size=4,
             data_type=u'text', filename=None
+=======
+        'phonebook': lambda data: dict(re.findall("(.*?):(.*?);", data.replace("MECARD:",""), re.IGNORECASE)),
+        'wifi' : lambda data: re.findall(u"WIFI:S:(.*);T:(.*);P:(.*);;", data, re.IGNORECASE)[0],
+    }
+
+    def data_recognise(self, data = None):
+        """Returns an unicode string indicating the data type of the data paramater"""
+        data = data or self.data
+        data_lower = data.lower()
+        if data_lower.startswith(u"http://") or data_lower.startswith(u"https://"): return u'url'
+        elif data_lower.startswith(u"mailto:"): return u'email'
+        elif data_lower.startswith(u"matmsg:to:"): return u'emailmessage'
+        elif data_lower.startswith(u"tel:"): return u'telephone'
+        elif data_lower.startswith(u"smsto:"): return u'sms'
+        elif data_lower.startswith(u"mmsto:"): return u'mms'
+        elif data_lower.startswith(u"geo:"): return u'geo'
+        elif data_lower.startswith(u"mebkm:title:"): return u'bookmark'
+        elif data_lower.startswith(u"mecard:"): return u'phonebook'
+        elif data_lower.startswith(u"wifi:"): return u'wifi'
+        else: return u'text'
+
+    def __init__(
+        self, data=u'NULL', pixel_size=3, level='L', margin_size=4,
+        data_type=u'text', filename=None
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
     ):
         self.pixel_size = pixel_size
         self.level = level
@@ -129,8 +193,8 @@ class QR(object):
 
     def data_to_string(self):
         """Returns a UTF8 string with the QR Code's data"""
-        # FIX-ME: if we don't add the BOM_UTF8 char, QtQR doesn't decode 
-        # correctly; but if we add it, mobile apps don't.- 
+        # FIX-ME: if we don't add the BOM_UTF8 char, QtQR doesn't decode
+        # correctly; but if we add it, mobile apps don't.-
         # /Apparently/ Confirmed that is a zbar bug.
         # See: https://bugs.launchpad.net/qr-tools/+bug/796387
         if self.data_type == 'text':
@@ -148,6 +212,7 @@ class QR(object):
     def encode(self, filename=None):
         self.filename = filename or self.get_tmp_file()
         ext = os.path.splitext(self.filename)[1].replace('.', '').upper()
+<<<<<<< HEAD
         if ext != 'PNG' \
                 and ext != 'EPS' \
                 and ext != 'SVG' \
@@ -157,6 +222,17 @@ class QR(object):
                 and ext != 'ASCIII' \
                 and ext != 'UTF8' \
                 and ext != 'ANSIUTF8':
+=======
+        if  ext != 'PNG' \
+        and ext != 'EPS' \
+        and ext != 'SVG' \
+        and ext != 'ANSI' \
+        and ext != 'ANSI256' \
+        and ext != 'ASCII' \
+        and ext != 'ASCIII' \
+        and ext != 'UTF8' \
+        and ext != 'ANSIUTF8':
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
             self.filename += '.png'
             ext = 'PNG'
         if self.qrencode_version > '3.1.1':
@@ -196,13 +272,21 @@ class QR(object):
             # scan the image for barcodes
             result = scanner.scan(image)
             # extract results
+<<<<<<< HEAD
             if result == 0:
+=======
+            if result == 0:
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
                 return False
             else:
                 for symbol in image:
                     pass
                 # clean up
+<<<<<<< HEAD
                 del (image)
+=======
+                del(image)
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
                 #Assuming data is encoded in utf8
                 self.data = symbol.data.decode(u'utf-8')
                 self.data_type = self.data_recognise()
@@ -210,7 +294,11 @@ class QR(object):
         else:
             return False
 
+<<<<<<< HEAD
     def decode_webcam(self, callback=lambda s: None, device='/dev/video0'):
+=======
+    def decode_webcam(self, callback=lambda s:None, device='/dev/video0'):
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         # create a Processor
         proc = zbar.Processor()
 
@@ -247,9 +335,15 @@ class QR(object):
     def get_qrencode_version(self):
         #Somehow qerencode writes this to stderr instead of stdout :-/
         #FIXME: Probably a future bug in newer versions.
+<<<<<<< HEAD
         p = subprocess.Popen(['qrencode', '-V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         version_text = p.communicate()[1]
         version = re.search('version\s([\d.]*)', version_text)
+=======
+        p = subprocess.Popen(['qrencode','-V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        version_text = p.communicate()[1]
+        version = re.search('version\s([\d.]*)',version_text)
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         if version:
             version_number = version.group(1)
         else:
@@ -258,9 +352,15 @@ class QR(object):
         return version_number
 
     def get_qrencode_types(self):
+<<<<<<< HEAD
         p = subprocess.Popen(['qrencode', '-h'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         help_text = p.communicate()[1]
         types_text = re.search('-t {([\w,]*)}', help_text)
+=======
+        p = subprocess.Popen(['qrencode','-h'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        help_text = p.communicate()[1]
+        types_text = re.search('-t {([\w,]*)}', help_text)
+>>>>>>> 0bd245ee866615e8748459fe7bc3949072d66a57
         if types_text:
             types = types_text.group(1).split(',')
             #print "The following format types have been found!:", types
