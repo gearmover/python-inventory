@@ -1,30 +1,33 @@
+
+__author__ = 'chris'
+
 import os
 import time
 import hashlib
 import json
 
-import flask.ext.login as flogin
+import traceback
+
 import vendor.qrtools as qrtools
 from elaphe.upc import UpcA
 import flask
 import rethinkdb as r
 
-from userauth import init, attempt
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
+from flask import request, session, abort
+from static import App
 
+from db import DatabaseMgr
 
-app = flask.Flask(__name__)
-app.secret_key = 'G0AI5jihTfHV9s1ALDqUO6BRCIKn4Nt5'
-
-conn = r.connect('127.0.0.1', 28015)
-
-auth_mgr = init(app, '127.0.0.1', 28015)
+the_app = App()
 
 
 def setup_db():
-    global conn
-    r.db_create('inventory').run(conn)
-    r.db('inventory').table_create('items').run(conn)
-    r.db('inventory').table_create('users').run(conn)
+    global the_app
+
+    r.db_create('inventory').run(the_app.conn)
+    r.db('inventory').table_create('items').run(the_app.conn)
+    r.db('inventory').table_create('users').run(the_app.conn)
 
 
 try:
@@ -39,32 +42,113 @@ except:
     users_db = db.table('users')
 
 
-# the items cache, prevents us from hitting the database with each request
-#
-cache = []
-cache_expires = 0
-cache_time = 60  # 60 second cache time
+class LoginUser:
+
+    def __init__(self, username = '', password = '', active = True):
+        global the_app
+
+        self.username = username
+        self.passhash = hashlib.sha256(the_app.app.config['SECRET_KEY'] + password).hexdigest()
+        self.active = active
+
+        self.uuid = hashlib.sha256(self.username + the_app.app.config['SECRET_KEY'] + self.passhash).hexdigest()
+
+    def generate_token(self, expiration = 600):
+
+        global the_app
+
+        s = Serializer(the_app.app.config['SECRET_KEY'], expires_in = expiration)
+
+        return s.dumps({ 'id': self.uuid })
+
+
+class LoginMgr:
+
+    @staticmethod
+    @the_app.app.route('/users/register', methods=['POST'])
+    @the_app.auth.login_required
+    def new_user():
+
+        global the_app
+
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if username is None or password is None:
+            return flask.redirect('/400') # missing arguments
+
+        if r.db('inventory').table('users').filter({'username':username}).count().run(the_app.conn):
+            print 'existing user'
+            return flask.redirect('/400') # existing user
+
+        user = LoginUser(username = username, password = password)
+
+        r.db('inventory').table('users').insert({
+            'id':user.uuid,
+            'username':user.username,
+            'passhash':user.passhash,
+            'active':user.active,
+            'roles':None,
+            'createdAt':time.time()}).run(the_app.conn)
+
+        return json.dumps({ 'username': user.username, 'result': 200, 'id': user.uuid})
+
+    def verify_token(self, token):
+        global the_app
+
+        print '[auth::verify_token] -> (%s)' % (token)
+
+        s = Serializer(the_app.app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return None
+        except BadSignature:
+            return None
+
+        user = list(r.db('inventory').table('users').filter({'uuid':data}).run(the_app.conn))
+
+        the_app.user = user
+
+        return user
+
+    @the_app.auth.verify_password
+    def verify_pwd(username, password):
+
+        print "[auth::verify_pwd] -> (%s,%s)" % (username,password)
+
+        global the_app
+
+        user = list(r.db('inventory').table('users').filter({'username':username,'passhash':hashlib.sha256(the_app.app.config['SECRET_KEY'] + password).hexdigest()}).run(the_app.conn))
+
+        if not len(user):
+            user = list(r.db('inventory').table('users').filter({'uuid':username}).run(the_app.conn))
+
+            if not len(user):
+                return False
+
+        the_app.user = user
+
+        return True
+
 
 
 def update_cache(offset=0, limit=999):
-    global cache
-    global cache_expires
-    global cache_time
     global items_db
-    global conn
+    global the_app
 
     try:
         cur_time = int(time.time())
 
-        if cur_time >= cache_expires:
-            all_items = items_db.run(conn)
-            cache = [i for i in all_items]
+        if cur_time >= the_app.cache_expires:
+            all_items = items_db.run(the_app.conn)
+            the_app.cache = [i for i in all_items]
 
-            cache_expires = cur_time + cache_time
+            the_app.cache_expires = cur_time + the_app.cache_time
 
             flask.flash('Cache Updated', "info")
 
-            for index, item in enumerate(cache):
+            for index, item in enumerate(the_app.cache):
                 if 'ImageUrl' not in item:
                     item['ImageUrl'] = 'http://placehold.it/350x250'
                 if 'Status' not in item:
@@ -80,7 +164,7 @@ def update_cache(offset=0, limit=999):
 
                     item['QRUrl'] = '/static/images/' + item['id'] + '.png'
 
-                if 'UPCUrl' not in cache[index]:
+                if 'UPCUrl' not in item:
                     try:
                         upc = ''
                         for a in item['id']:
@@ -102,7 +186,7 @@ def update_cache(offset=0, limit=999):
         offset = boff
         limit = blim
 
-        view = cache[offset:offset + limit]
+        view = the_app.cache[offset:offset + limit]
 
         return view
 
@@ -112,8 +196,13 @@ def update_cache(offset=0, limit=999):
         return flask.redirect('/')
 
 
-@app.route('/assets/<t>/<filename>')
-@flogin.login_required
+@the_app.app.before_request
+def print_headers():
+
+    print the_app.user
+
+@the_app.app.route('/assets/<t>/<filename>')
+@the_app.auth.login_required
 def assets(filename, t):
     try:
         if '..' in filename or filename[0] == '/':
@@ -137,27 +226,34 @@ def assets(filename, t):
         return flask.redirect('/')
 
 
-@app.route('/404')
+@the_app.app.route('/404')
 def not_found():
     return 'Oops!  Looks like we\'ve lost a website!'
 
+@the_app.app.route('/400')
+def invalid_request():
+    return 'Invalid Request.  Please use your browers back button to return to your previous page.'\
 
-@app.route('/items/count', methods=['GET'])
-@flogin.login_required
+@the_app.app.route('/401')
+def unauthorized():
+    return 'Unauthorized Access.  If you feel this is in error, please contact the IT support team.'
+
+
+@the_app.app.route('/items/count', methods=['GET'])
 def item_count():
     view = update_cache()
 
     return json.dumps({'status': 200, 'count': len(view)})
 
 
-@app.route('/items')
-@flogin.login_required
+@the_app.app.route('/items')
+@the_app.auth.login_required
 def def_list_items():
     return flask.redirect('/items/0/99')
 
 
-@app.route('/items/<offset>/<limit>', methods=['GET'])
-@flogin.login_required
+@the_app.app.route('/items/<offset>/<limit>', methods=['GET'])
+@the_app.auth.login_required
 def list_items(offset, limit):
     offset = offset or 0
     limit = limit or 100
@@ -187,9 +283,9 @@ def list_items(offset, limit):
     return flask.render_template('list_item.html', items=final, display=display, headers=summary_headers)
 
 
-@app.route('/json/items/<offset>/<limit>', methods=['GET'])
-@app.route('/json/items')
-@flogin.login_required
+@the_app.app.route('/json/items/<offset>/<limit>', methods=['GET'])
+@the_app.app.route('/json/items')
+@the_app.auth.login_required
 def list_items_json(offset=0, limit=99):
     offset = offset or 0
     limit = limit or 100
@@ -224,65 +320,58 @@ def list_items_json(offset=0, limit=99):
                        'display': display,
                        'headers': summary_headers})
 
+########################################################################################################################
 
-@app.route('/login', methods=['GET'])
-def show_login():
+@the_app.app.route('/users/token')
+@the_app.auth.login_required
+def get_auth_token():
+    global the_app
 
-    return flask.render_template('login.html')
+    token = the_app.auth.generate_token()
 
-@app.route('/login', methods=['POST'])
-def login():
-    form = flask.request.form
-
-    print '[routes::login] -> parameters are : ',dict(form)
-
-    args = {}
-    attr = (lambda obj,attr: obj[attr] if attr in obj else None)
-
-    args['username'] = unicode(attr(form,'username'))
-    args['password'] = attr(form,'password')
-    args['rememberme'] = attr(form,'rememberme') == 'true'
-
-    user = attempt(args['username'], args['password'])
-
-    print '[routes::login] -> login attempt : ', str(user)
-
-    if user is not None:
-        print 'id: %d, name: %s, active: %d' % (user.id, user.name, user.active)
-        flogin.login_user(user)
-        return flask.redirect(flask.request.args.get("next") or '/items')
-
-    return flask.render_template('login.html', form=form)
-
-    # user is not None:
-        #flogin.login_user(user, form['rememberme'])
+    return json.dumps({'result':200, 'token': token.decode('ascii'), 'expiresIn': '600s'})
 
 
-
-@app.route('/items', methods=['PUT'])
-@flogin.login_required
+@the_app.app.route('/items', methods=['PUT'])
+@the_app.auth.login_required
 def update_item():
-    # try:
-    #     pass
-    # except KeyError:
-    #     # no user data submitted
-    #     flask.flash('Invalid Request')
-    #     return 403
-    #
-    # if flogin.current_user is None:
-    #     # invalid credentials
-    #     flask.flash('Invalid Credentials')
-    #     return 401
-    #
-    # if 'DB_ADMIN' in flogin.current_user.roles:
-    #     flask.flash('Yay success')
-    #     return 'Success'
 
-    return flask.abort(401)
+    global the_app
+
+    #if 'DB_ADMIN' not in the_app.user['roles']:
+    #    return flask.redirect('/401')
+
+    #try:
+
+    form = request.form
+
+    print '[routes::update_item] -> FORM: %s' % json.dumps(form)
+
+    obj = {}
+
+    for field in DatabaseMgr._cols:
+        if field in form:
+            obj[field] = form[field]
+        else:
+            obj[field] = ''
+
+    print '[routes::update_item] -> SANITIZED: %s' % json.dumps(obj)
+
+    if 'id' in form:
+        obj['id'] = form['id']
+
+        result = r.db('inventory').table('items').get(obj['id']).update(obj).run(the_app.conn)
+    else:
+        obj['id'] = hashlib.md5(str(time.time()) + 'BigBlueSea!').hexdigest()
+
+        result = r.db('inventory').table('items').insert(obj).run(the_app.conn)
 
 
-@app.route('/items', methods=['DELETE'])
-@flogin.login_required
+    return '[routes::update_item] -> FORM: %s SANI: %s RESULT: %s' % (json.dumps(form), json.dumps(obj), json.dumps(result))
+
+
+@the_app.app.route('/items', methods=['DELETE'])
+@the_app.auth.login_required
 def delete_item():
     # try:
     #     current_user = userauth.att(flask.request.form['username'], flask.request.form['password'])
@@ -303,7 +392,8 @@ def delete_item():
     return flask.abort(401)
 
 
-@app.route('/items/<barcode>', methods=['POST'])
+@the_app.app.route('/items/<barcode>', methods=['POST'])
+@the_app.auth.login_required
 def slice_list_items(barcode):
     view = update_cache()
 
@@ -314,7 +404,8 @@ def slice_list_items(barcode):
     return flask.render_template('item_header.html', fields={})
 
 
-@app.route('/json/items/<barcode>', methods=['POST'])
+@the_app.app.route('/json/items/<barcode>', methods=['POST'])
+@the_app.auth.login_required
 def slice_list_json(barcode):
     view = update_cache()
 
@@ -325,10 +416,10 @@ def slice_list_json(barcode):
     return json.dumps({'status': 404, 'count': 0, 'items': [{}]})
 
 
-@app.route('/')
+@the_app.app.route('/')
 def default():
     return flask.redirect('/items')
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    the_app.app.run(debug=True)

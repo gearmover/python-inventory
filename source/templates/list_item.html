@@ -129,6 +129,8 @@
 
                     if (!tmp) {
 
+                        elem.classList.add('header');
+
                         for (var j in data[i]) {
                             if (data[i].hasOwnProperty(j) && j !== 'id') {
                                 elem.innerHTML += '<th>' + j + '</th>';
@@ -136,6 +138,9 @@
                         }
 
                         tmp = true;
+
+                        // we need to process the actual item, so subtract one from iterator
+                        i--;
                     }
                     else {
                         for (var j in data[i]) {
@@ -161,6 +166,12 @@
                 }
 
                 $(".item").on('click', function () {
+
+                    if ($(this).hasClass('header')) {
+                        return;
+                    }
+
+
                     if (this.classList.contains('expanded')) {
                         toggleDetails(this, this.id, false);
                         updateData('.datatable', offset, limit);
@@ -197,6 +208,12 @@
         //setInterval( function() { updateData(".datatable",offset,limit); offset%= 100; }, 10000);
 
         $(".item").on('click', function () {
+
+            // prevents the headers from expanding
+            if ($(this).hasClass('header')) {
+                return;
+            }
+
             if (this.classList.contains('expanded')) {
                 toggleDetails(this, this.id, false);
                 updateData('.datatable', offset, limit);
@@ -249,7 +266,15 @@
                 } catch(e) {}
             }
 
-            console.log(doc);
+            doc['id'] = that;
+
+            $.ajax('/items', {
+                data: doc,
+                type: 'PUT',
+                success: function(data) {
+                    console.log(data);
+                }
+            });
         }
     });
 

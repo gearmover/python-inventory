@@ -33,56 +33,100 @@ except:
     except:
         pass
 
+try:
+    r.db('inventory').table('users').run(conn)
+except:
+    try:
+        r.db('inventory').table_create('users').run(conn)
+    except:
+        pass
+
 class DatabaseMgr:
 
-    _schema = {
-        'version': '0.0.1',
-        'fields': {
-            'essieqr': {'displayName': 'ESSIE QR Code', 'summary': True, 'style': 'width:50px;height:50px;',
-                        'hide': False, 'description': 'The ESSIE QR image and the plaintext data encoded in it'},  #
-            'uf_inventory': {'displayName': 'UF Inventory Number', 'summary': False, 'style': 'width:10%;',
-                             'hide': False, 'description': 'University of Florida assigned inventory ID'},  #
-            'type': {'displayName': 'Type', 'summary': False, 'style': 'width:10%;', 'hide': False,
-                     'description': 'One of four broad categories of ESSIE inventory'},
-            'manufacturer': {'displayName': 'Manufacturer', 'summary': False, 'style': 'width:10%;', 'hide': False,
-                             'description': 'The items parent company, or a representative brand'},
-            'model': {'displayName': 'Model', 'summary': False, 'style': 'width:10%;', 'hide': False,
-                      'description': 'The product line or version'},  #
-            'description': {'displayName': 'description', 'summary': False, 'style': 'width:10%', 'hide': False,
-                            'description': 'A short description of the item from the vendors marketing material'},
-            # Approx a paragraph describing the item
-            'serial': {'displayName': 'Serial Number', 'summary': False, 'style': 'width:10%', 'hide': False,
-                       'description': 'Any unique serial the item might have from the manufacturer'},  #
-            'location': {'displayName': 'Location', 'summary': False, 'style': 'width:10%', 'hide': False,
-                         'description': 'The main storage facility of this item.'},
-            'gps': {'displayName': 'Last GPS', 'summary': True, 'style': 'width:10%;', 'hide': False,
-                    'description': 'The GPS coordinates of the previous location this item was scanned'},
-            'lastcheck': {'displayName': 'Last Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False,
-                          'description': 'The most recent instrument calibration, if applicable'},
-            'nextcheck': {'displayName': 'Next Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False,
-                          'description': 'The next scheduled instrument calibration, if applicable'},
-            'rangeUnits': {'displayName': 'Units of Range', 'summary': True, 'style': 'width:10%;', 'hide': True,
-                           'description': 'The units measured throughout the items range'},
-            'rangeMin': {'displayName': 'Range Min', 'summary': True, 'style': 'width:10%;', 'hide': False,
-                         'description': 'The minimum value expected to not cause permanent damage'},
-            'rangeMax': {'displayName': 'Range Max', 'summary': True, 'style': 'width:10%;', 'hide': False,
-                         'description': 'The maximum value expected to not cause permanent damage'},
-            'measureUnits': {'displayName': 'Units of Measurement', 'summary': True, 'style': 'width:10%;',
-                             'hide': True, 'description': 'The units used by the instrument for measurements'},
-            'measureMin': {'displayName': 'Min Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False,
-                           'description': 'The minimum value expected to provide repeatable, reliable results'},
-            'measureMax': {'displayName': 'Max Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False,
-                           'description': 'The maximum value expected to provide repeatable, reliable results'},
-            'room': {'displayName': 'Room', 'summary': False, 'style': 'width:10%', 'hide': False,
-                     'description': 'The room number where this item is typically stored'},
-            'manual': {'displayName': 'Manual', 'summary': False, 'style': 'width:10%', 'hide': False,
-                       'description': 'A link to a local digital copy of the product manual, if available'},
-            'ocodecal': {'displayName': 'OCO Decal No.', 'summary': False, 'style': 'width:10%;', 'hide': False,
-                         'description': 'Another external tracking decal (?)'},
-            'sourcegrant': {'displayName': 'Source Grant', 'summary': False, 'style': 'width:10%', 'hide': False,
-                            'description': 'The grant funding the purchase and maintenance of this item'}
-            }
-        }
+    version = '0.1.0'
+
+    _cols = {
+         "Calibration Doc": "" ,
+        "Calibration Expires": "" ,
+        "Category": "" ,
+        "Description": "" ,
+        "Excitation (V)": "" ,
+        "Interface Protocol": "" ,
+        "ImageUrl": "",
+        "Last Calibrated": "" ,
+        "Location": "" ,
+        "Manual": "" ,
+        "Manufacturer": "" ,
+        "Model": "" ,
+        "OCO Decal No.": "" ,
+        "Output Max": "" ,
+        "Output Min": "" ,
+        "Output Units": "" ,
+        "Range Max": "" ,
+        "Range Min": "" ,
+        "Range Units": "" ,
+        "Room": "" ,
+        "Serial Number": "" ,
+        "Source Grant": "" ,
+        "Type 1": "" ,
+        "Type 2": "" ,
+        "UF Inventory Number": "",
+        "QRUrl": "",
+        "Status": "",
+        "UPCUrl": "",
+        "LastSeen": ""
+    }
+
+    # DEPRECATED OBJECT
+    #
+    # _schema = {
+    #     'version': '0.0.1',
+    #     'fields': {
+    #         'essieqr': {'displayName': 'ESSIE QR Code', 'summary': True, 'style': 'width:50px;height:50px;',
+    #                     'hide': False, 'description': 'The ESSIE QR image and the plaintext data encoded in it'},  #
+    #         'uf_inventory': {'displayName': 'UF Inventory Number', 'summary': False, 'style': 'width:10%;',
+    #                          'hide': False, 'description': 'University of Florida assigned inventory ID'},  #
+    #         'type': {'displayName': 'Type', 'summary': False, 'style': 'width:10%;', 'hide': False,
+    #                  'description': 'One of four broad categories of ESSIE inventory'},
+    #         'manufacturer': {'displayName': 'Manufacturer', 'summary': False, 'style': 'width:10%;', 'hide': False,
+    #                          'description': 'The items parent company, or a representative brand'},
+    #         'model': {'displayName': 'Model', 'summary': False, 'style': 'width:10%;', 'hide': False,
+    #                   'description': 'The product line or version'},  #
+    #         'description': {'displayName': 'description', 'summary': False, 'style': 'width:10%', 'hide': False,
+    #                         'description': 'A short description of the item from the vendors marketing material'},
+    #         # Approx a paragraph describing the item
+    #         'serial': {'displayName': 'Serial Number', 'summary': False, 'style': 'width:10%', 'hide': False,
+    #                    'description': 'Any unique serial the item might have from the manufacturer'},  #
+    #         'location': {'displayName': 'Location', 'summary': False, 'style': 'width:10%', 'hide': False,
+    #                      'description': 'The main storage facility of this item.'},
+    #         'gps': {'displayName': 'Last GPS', 'summary': True, 'style': 'width:10%;', 'hide': False,
+    #                 'description': 'The GPS coordinates of the previous location this item was scanned'},
+    #         'lastcheck': {'displayName': 'Last Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False,
+    #                       'description': 'The most recent instrument calibration, if applicable'},
+    #         'nextcheck': {'displayName': 'Next Calibration', 'summary': False, 'style': 'width:10%;', 'hide': False,
+    #                       'description': 'The next scheduled instrument calibration, if applicable'},
+    #         'rangeUnits': {'displayName': 'Units of Range', 'summary': True, 'style': 'width:10%;', 'hide': True,
+    #                        'description': 'The units measured throughout the items range'},
+    #         'rangeMin': {'displayName': 'Range Min', 'summary': True, 'style': 'width:10%;', 'hide': False,
+    #                      'description': 'The minimum value expected to not cause permanent damage'},
+    #         'rangeMax': {'displayName': 'Range Max', 'summary': True, 'style': 'width:10%;', 'hide': False,
+    #                      'description': 'The maximum value expected to not cause permanent damage'},
+    #         'measureUnits': {'displayName': 'Units of Measurement', 'summary': True, 'style': 'width:10%;',
+    #                          'hide': True, 'description': 'The units used by the instrument for measurements'},
+    #         'measureMin': {'displayName': 'Min Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False,
+    #                        'description': 'The minimum value expected to provide repeatable, reliable results'},
+    #         'measureMax': {'displayName': 'Max Measurement', 'summary': True, 'style': 'width:10%;', 'hide': False,
+    #                        'description': 'The maximum value expected to provide repeatable, reliable results'},
+    #         'room': {'displayName': 'Room', 'summary': False, 'style': 'width:10%', 'hide': False,
+    #                  'description': 'The room number where this item is typically stored'},
+    #         'manual': {'displayName': 'Manual', 'summary': False, 'style': 'width:10%', 'hide': False,
+    #                    'description': 'A link to a local digital copy of the product manual, if available'},
+    #         'ocodecal': {'displayName': 'OCO Decal No.', 'summary': False, 'style': 'width:10%;', 'hide': False,
+    #                      'description': 'Another external tracking decal (?)'},
+    #         'sourcegrant': {'displayName': 'Source Grant', 'summary': False, 'style': 'width:10%', 'hide': False,
+    #                         'description': 'The grant funding the purchase and maintenance of this item'}
+    #         }
+    #     }
 
     _DefaultConfig = {
         'rethinkDB': {
@@ -116,7 +160,7 @@ class DatabaseMgr:
         if len(data) == 0:
             print "[warning]: CSV file %s empty or not found. no data loaded." % os.path.basename(filename)
 
-        print "Converting %d fields in file with schema v%s" % (len(data), self._schema['version'])
+        print "Converting %d fields in file with schema v%s" % (len(data), self.version)
 
         document = []
 
