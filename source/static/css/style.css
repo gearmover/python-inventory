@@ -1,4 +1,4 @@
-body, table, tr, td {
+body, table {
     font-family: 'Open Sans', sans-serif;
     font-size: 12pt;
     padding: 0;
@@ -7,17 +7,19 @@ body, table, tr, td {
 
 table, tr.item, tr.headers {
     width: 100%;
+    height: 40px;
     z-index: 10;
+    padding: 20px 20px 20px 20px;
+    margin: 0;
 }
 
 tr.item:nth-of-type(odd) {
     background-color: lightblue;
     background-color: rgba(166, 183, 255, 0.4);
-    padding: 0;
-    margin: 0;
 }
 
-.expanded {
+
+tr.item.expanded {
     vertical-align: top;
     height: 300px;
 }
@@ -26,6 +28,7 @@ tr.item:nth-of-type(odd) {
     visibility: hidden;
     position: absolute;
     z-index: 5;
+    right: 0px;
     left: 50px;
 }
 
@@ -48,22 +51,46 @@ tr.item:nth-of-type(odd) {
 
     padding: 3px;
     margin: 0;
+
+    text-align: center;
 }
 
-.model {
-    width: 25%;
+.item.expanded td {
+    color: rgba(1,1,1,0.2) !important;
 }
 
-.manufacturer {
+.item td.Model {
     width: 25%;
+    font-size: 1.5rem;
+    font-weight:bold;
+    text-align: center;
 }
 
-.serial {
+.item .Manufacturer {
     width: 25%;
+    margin-left: 20px;
+    text-align: center;
 }
 
-.location {
+.item .Model {
+    font-size: 1.7rem;
+    text-align: center;
+}
+
+.item td.Manufacturer {
+    color: #564C2A;
+}
+
+.item .SerialNumber {
     width: 25%;
+    text-align:center;
+    padding-right: calc(15% + 30px);
+}
+
+.item .Location {
+    text-align: center;
+    padding-right: 100px;
+    width: 10%;
 }
 
 .info-block {
@@ -71,9 +98,10 @@ tr.item:nth-of-type(odd) {
     border: 1px solid black;
     top: 15px;
     left: -35px;
+    width:104%;
     right: 0;
     bottom: 0;
-    padding: 20px;
+    padding: 0px;
     margin: 0;
     background-color: white;
 }

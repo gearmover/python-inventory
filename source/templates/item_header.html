@@ -4,6 +4,7 @@
 
         <span class="d-model"><pre class='model' contenteditable="true">{{ fields['Model'] }}</pre></span>
         <span class="d-manufacturer"><pre class='manufacturer' contenteditable="true">{{ fields['Manufacturer'] }}</pre></span>
+        <input type="hidden" name="ImageUrl" value="{{ fields['ImageUrl'] }}">
         <img src="{{ fields['ImageUrl'] }}" class="d-image"><br><br>
 
         <div class="d-description"><strong style="margin-left:10px">Description:</strong> &nbsp;&nbsp;
@@ -32,9 +33,10 @@
         </div>
 
         <img src="{{ fields['QRUrl'] }}" class="d-qr"><br><br>
+        <input type="hidden" name="QRUrl" value="{{ fields['QRUrl'] }}">
         <img src="{{ fields['UPCUrl'] }}" class="d-upc"><br><br>
-
-        <input type="hidden" id="_id" value="{{ fields['id'] }}">
+        <input type="hidden" name="UPCUrl" value="{{ fields['UPCUrl'] }}">
+        <input type="hidden" name="id" value="{{ fields['id'] }}">
 
         <input type="submit" value="Update" class="update-button">
 

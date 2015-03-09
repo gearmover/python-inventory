@@ -121,21 +121,18 @@
 
                 var tmp = false;
 
-                for (var i = 0; i < data.length; i++) {
+                for (var t = 0; t < data.length; t++) {
                     var elem = document.createElement('tr');
 
                     elem.classList.add('item');
-                    elem.id = data[i].id;
+                    elem.id = data[t].id;
 
                     if (!tmp) {
 
                         elem.classList.add('header');
 
-                        for (var j in data[i]) {
-                            if (data[i].hasOwnProperty(j) && j !== 'id') {
-                                elem.innerHTML += '<th>' + j + '</th>';
-                            }
-                        }
+                        elem.innerHTML = '<th class="Model">Model</th><th class="Manufacturer">Manufacturer</th><th class="SerialNumber">Serial Number</th><th class="Location">Location</th>';
+                        elem.id = '';
 
                         tmp = true;
 
@@ -143,12 +140,15 @@
                         i--;
                     }
                     else {
-                        for (var j in data[i]) {
-                            if (data[i].hasOwnProperty(j) && j !== 'id') {
+                        var desc = {};
+                        for (var m in data[t]) {
+                            if (data[t].hasOwnProperty(m)) {
 
-                                elem.innerHTML += '<td>' + data[i][j] + '</td>'
+                                desc[m] = data[t][m];
                             }
                         }
+
+                        elem.innerHTML = '<td class="Model">'+desc['Model']+'</td><td class="Manufacturer">'+desc['Manufacturer']+'</td><td class="SerialNumber">'+desc['Serial Number']+'</td><td class="Location">'+desc['Location']+'</td>';
                     }
 
                     parent.appendChild(elem);
@@ -174,10 +174,10 @@
 
                     if (this.classList.contains('expanded')) {
                         toggleDetails(this, this.id, false);
-                        updateData('.datatable', offset, limit);
+                        //updateData('.datatable', offset, limit);
                     } else {
                         toggleDetails(this, this.id, true);
-                        updateData('.datatable', offset, limit);
+                        //updateData('.datatable', offset, limit);
                     }
                 });
 
@@ -216,10 +216,10 @@
 
             if (this.classList.contains('expanded')) {
                 toggleDetails(this, this.id, false);
-                updateData('.datatable', offset, limit);
+                //updateData('.datatable', offset, limit);
             } else {
                 toggleDetails(this, this.id, true);
-                updateData('.datatable', offset, limit);
+                //updateData('.datatable', offset, limit);
             }
         });
 
@@ -263,6 +263,14 @@
             for( var i=0; i<fields.length; i++ ) {
                 try {
                     doc[$(fields[i]).attr('class')] = fields[i].innerText;
+                } catch(e) {}
+            }
+
+            var fields = $('#form-'+that+' input');
+
+            for( var i=0; i<fields.length; i++ ) {
+                try {
+                    doc[$(fields[i]).attr('name')] = $(fields[i]).val()
                 } catch(e) {}
             }
 

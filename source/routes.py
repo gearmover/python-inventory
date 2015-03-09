@@ -332,6 +332,14 @@ def get_auth_token():
     return json.dumps({'result':200, 'token': token.decode('ascii'), 'expiresIn': '600s'})
 
 
+def find_match(field):
+
+    schema = DatabaseMgr._schema
+
+    for i in schema['fields']:
+        if field in schema['fields'][i]['displayName']:
+            return i
+
 @the_app.app.route('/items', methods=['PUT'])
 @the_app.auth.login_required
 def update_item():
@@ -350,12 +358,14 @@ def update_item():
     obj = {}
 
     for field in DatabaseMgr._cols:
-        if field in form:
+        match = find_match(field)
+        if match in form:
+            obj[field] = form[match]
+        elif field in form:
             obj[field] = form[field]
         else:
             obj[field] = ''
 
-    print '[routes::update_item] -> SANITIZED: %s' % json.dumps(obj)
 
     if 'id' in form:
         obj['id'] = form['id']
@@ -365,6 +375,10 @@ def update_item():
         obj['id'] = hashlib.md5(str(time.time()) + 'BigBlueSea!').hexdigest()
 
         result = r.db('inventory').table('items').insert(obj).run(the_app.conn)
+
+    print '[routes::update_item] -> SANITIZED: %s' % json.dumps(obj)
+
+    the_app.cache_expires = 0
 
 
     return '[routes::update_item] -> FORM: %s SANI: %s RESULT: %s' % (json.dumps(form), json.dumps(obj), json.dumps(result))
